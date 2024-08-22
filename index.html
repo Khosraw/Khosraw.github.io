@@ -95,7 +95,7 @@
             opacity: 0;
             transform: translateX(-10px);
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(30, 30, 30, 0.8);
             border-radius: 10px;
             backdrop-filter: blur(5px);
             position: relative;
@@ -105,19 +105,19 @@
         .experience-item::before, .education-item::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            top: var(--mouse-y, 50%);
+            left: var(--mouse-x, 50%);
+            width: 300px;
+            height: 300px;
             background: radial-gradient(
-                circle at center,
+                circle closest-side,
                 rgba(255, 255, 255, 0.2) 0%,
-                rgba(255, 255, 255, 0.1) 10%,
-                rgba(255, 255, 255, 0) 60%
+                rgba(255, 255, 255, 0.1) 30%,
+                rgba(255, 255, 255, 0) 100%
             );
+            transform: translate(-50%, -50%);
             opacity: 0;
             transition: opacity 0.3s;
-            transform: translate(-50%, -50%);
             pointer-events: none;
         }
 
@@ -253,12 +253,8 @@
                 const x = event.clientX - rect.left;
                 const y = event.clientY - rect.top;
                 
-                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-                    const xPercent = (x / rect.width) * 100;
-                    const yPercent = (y / rect.height) * 100;
-                    item.style.setProperty('--mouse-x', `${xPercent}%`);
-                    item.style.setProperty('--mouse-y', `${yPercent}%`);
-                }
+                item.style.setProperty('--mouse-x', `${x}px`);
+                item.style.setProperty('--mouse-y', `${y}px`);
             });
         }
 
