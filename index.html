@@ -18,19 +18,21 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 40px;
         }
         h1 {
             color: #bb86fc;
-            font-size: 2.5em;
+            font-size: 3.5em;
+            margin-bottom: 20px;
         }
         h2 {
             color: #03dac6;
+            font-size: 2em;
         }
         .section {
             background-color: #1e1e1e;
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 40px;
+            margin-bottom: 40px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             opacity: 0;
@@ -46,37 +48,41 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            text-align: center;
+            text-align: left;
             background-color: #1e1e1e;
         }
-        .hero h1 {
-            margin-bottom: 10px;
-        }
         .hero p {
-            font-size: 1.2em;
-            max-width: 600px;
-            margin: 10px auto;
+            font-size: 1.4em;
+            max-width: 800px;
+            margin: 20px 0;
         }
         .social-links {
-            margin-top: 20px;
+            margin-top: 30px;
         }
         .social-links a {
-            margin: 0 10px;
+            margin-right: 20px;
             text-decoration: none;
             color: #03dac6;
             transition: color 0.3s ease;
-            font-size: 24px;
+            font-size: 28px;
         }
         .social-links a:hover {
             color: #bb86fc;
         }
         .experience-item, .education-item {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             border-left: 2px solid #03dac6;
-            padding-left: 20px;
+            padding: 20px;
             opacity: 0;
             transform: translateX(-10px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+        .experience-item:hover, .education-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(3, 218, 198, 0.3);
         }
         .experience-item.visible, .education-item.visible {
             opacity: 1;
@@ -98,16 +104,16 @@
         }
         @media (max-width: 768px) {
             .container {
-                padding: 10px;
-            }
-            .section {
                 padding: 20px;
             }
+            .section {
+                padding: 30px;
+            }
             h1 {
-                font-size: 2em;
+                font-size: 2.5em;
             }
             .hero p {
-                font-size: 1em;
+                font-size: 1.2em;
             }
         }
     </style>
@@ -116,9 +122,10 @@
     <div class="hero section">
         <div class="container">
             <h1>Khosraw (Kho) Azizi</h1>
-            <p>Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
-            <p>Based in Plano, Texas, United States</p>
-            <p>I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness. I enjoy working with people and learning new things. I always look for more challenging problems to solve and use the tools around me to help others the best I can. When there's the next best thing, I am ready to learn about it.</p>
+            <p>Based in Austin, TX.</p>
+            <p>I'm currently building Secant, an AI-powered teaching (and learning) assistant that helps teachers and students boost their productivity inside + outside the classroom.</p>
+            <p>Previously, I built a platform that helped young devs find tech projects (acquired by Exponent), led at a non-profit building products for 5M+ users, and an MC server at 14 with $30k MRR. I'm studying computer science and philosophy at UT Austin.</p>
+            <p>I also love learning about... well, everything. Reach out — to talk about anything!</p>
             <div class="social-links">
                 <a href="https://www.linkedin.com/in/khosraw-azizi" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://x.com/azizikhosraw" target="_blank"><i class="fab fa-twitter"></i></a>
