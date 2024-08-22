@@ -15,6 +15,76 @@
             padding: 0;
             background-color: #121212;
         }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            overflow-x: hidden;
+        }
+        
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            z-index: -1;
+        }
+        
+        .blur-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        
+        .blur-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background-color: rgba(3, 218, 198, 0.3);
+            top: 20%;
+            left: 10%;
+        }
+        
+        .blur-circle:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            background-color: rgba(187, 134, 252, 0.3);
+            top: 60%;
+            right: 20%;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+            position: relative;
+        }
+        
+        h1 {
+            color: #bb86fc;
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .interactive-letter {
+            display: inline-block;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        
+        .interactive-letter:hover {
+            transform: translateY(-5px);
+            color: #03dac6;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -165,9 +235,14 @@
     </style>
 </head>
 <body>
+    <div class="background">
+        <div class="blur-circle"></div>
+        <div class="blur-circle"></div>
+    </div>
+
     <div class="hero section">
         <div class="container">
-            <h1>Khosraw (Kho) Azizi</h1>
+            <h1 id="interactive-name">Khosraw (Kho) Azizi</h1>
             <h3>Based in Austin, TX.</h3>
             <h3>I'm currently building Secant, an AI-powered teaching (and learning) assistant that helps teachers and students boost their productivity inside + outside the classroom.</p>
             <h3>Previously, I built a platform that helped young devs find tech projects (acquired by Exponent), led at a non-profit building products for 5M+ users, and an MC server at 14 with $30k MRR. I'm studying computer science and philosophy at UT Austin.</h3>
@@ -285,6 +360,33 @@
 
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('load', handleScroll);
+
+
+        // holy shit i need to use comments
+
+        // Background interactivity
+        document.addEventListener('mousemove', (e) => {
+            const circles = document.querySelectorAll('.blur-circle');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            circles.forEach((circle, index) => {
+                const offsetX = (index === 0 ? -1 : 1) * 50 * (x - 0.5);
+                const offsetY = (index === 0 ? -1 : 1) * 50 * (y - 0.5);
+                circle.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        });
+
+        // Interactive name
+        const nameElement = document.getElementById('interactive-name');
+        const letters = nameElement.textContent.split('');
+        nameElement.textContent = '';
+        letters.forEach(letter => {
+            const span = document.createElement('span');
+            span.textContent = letter;
+            span.className = 'interactive-letter';
+            nameElement.appendChild(span);
+        });
     </script>
 </body>
 </html>
