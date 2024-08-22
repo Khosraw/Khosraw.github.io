@@ -69,20 +69,9 @@
         .social-links a:hover {
             color: #bb86fc;
         }
-        .experience-item, .education-item {
-            margin-bottom: 30px;
-            border-left: 2px solid #03dac6;
-            padding: 20px;
-            opacity: 0;
-            transform: translateX(-10px);
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-        }
         .experience-item:hover, .education-item:hover {
             background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 15px rgba(3, 218, 198, 0.3);
+            box-shadow: 0 15px 30px rgba(3, 218, 198, 0.2), 0 0 15px rgba(187, 134, 252, 0.3);
         }
         .experience-item.visible, .education-item.visible {
             opacity: 1;
@@ -94,14 +83,14 @@
             padding: 20px;
             opacity: 0;
             transform: translateX(-10px);
-            transition: all 0.3s ease;
+            transition: all 0.3s ease, box-shadow 0.3s ease;
             background: rgba(30, 30, 30, 0.8);
             border-radius: 10px;
             backdrop-filter: blur(5px);
             position: relative;
             overflow: hidden;
             transform-style: preserve-3d;
-            transition: transform 0.1s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .experience-item::before, .education-item::before {
@@ -113,19 +102,38 @@
             height: 300px;
             background: radial-gradient(
                 circle closest-side,
-                rgba(255, 255, 255, 0.2) 0%,
-                rgba(255, 255, 255, 0.1) 30%,
+                rgba(159, 206, 201, 0.3) 0%,
+                rgba(150, 186, 244, 0.2) 30%,
                 rgba(255, 255, 255, 0) 100%
             );
             transform: translate(-50%, -50%);
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
+            mix-blend-mode: screen;
         }
 
         .experience-item:hover::before, .education-item:hover::before {
             opacity: 1;
         }
+
+        .experience-item::after, .education-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(3, 218, 198, 0.1), rgba(187, 134, 252, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .experience-item:hover::after, .education-item:hover::after {
+            opacity: 1;
+        }
+
         @keyframes glow {
             0% {
                 text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
@@ -257,16 +265,16 @@
             item.style.setProperty('--mouse-x', `${x}px`);
             item.style.setProperty('--mouse-y', `${y}px`);
 
-            // Calculate tilt
-            const tiltX = -(y / rect.height - 0.5) * 10; // Max 5 degree tilt
-            const tiltY = (x / rect.width - 0.5) * 10; // Max 5 degree tilt
+            // Calculate tilt with increased effect
+            const tiltX = -(y / rect.height - 0.5) * 15; // Max 7.5 degree tilt
+            const tiltY = (x / rect.width - 0.5) * 15; // Max 7.5 degree tilt
 
-            item.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            item.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.05)`;
         }
 
         function handleMouseLeave(event) {
             const item = event.currentTarget;
-            item.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+            item.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
         }
 
         const items = document.querySelectorAll('.experience-item, .education-item');
