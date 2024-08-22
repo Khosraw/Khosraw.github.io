@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khosraw (Kho) Azizi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'Inter', sans-serif;
             line-height: 1.6;
             color: #e0e0e0;
             margin: 0;
@@ -22,53 +22,17 @@
         }
         h1 {
             color: #bb86fc;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.5em;
         }
         h2 {
             color: #03dac6;
         }
-        .main-section {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            background-color: #1e1e1e;
-            padding: 2rem;
-            box-sizing: border-box;
-        }
-        .tagline {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .location {
-            font-style: italic;
-            margin-bottom: 1rem;
-        }
-        .quick-bio {
-            max-width: 600px;
-            margin-bottom: 2rem;
-        }
-        .social-links {
-            margin-bottom: 2rem;
-        }
-        .social-links a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: #03dac6;
-            transition: color 0.3s ease;
-            font-size: 24px;
-        }
-        .social-links a:hover {
-            color: #bb86fc;
-        }
         .section {
             background-color: #1e1e1e;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -77,10 +41,39 @@
             opacity: 1;
             transform: translateY(0);
         }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            background-color: #1e1e1e;
+        }
+        .hero h1 {
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 10px auto;
+        }
+        .social-links {
+            margin-top: 20px;
+        }
+        .social-links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #03dac6;
+            transition: color 0.3s ease;
+            font-size: 24px;
+        }
+        .social-links a:hover {
+            color: #bb86fc;
+        }
         .experience-item, .education-item {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border-left: 2px solid #03dac6;
-            padding-left: 10px;
+            padding-left: 20px;
             opacity: 0;
             transform: translateX(-10px);
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -90,9 +83,15 @@
             transform: translateX(0);
         }
         @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(187, 134, 252, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(187, 134, 252, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(187, 134, 252, 0.5); }
+            0% {
+                text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(187, 134, 252, 0.8);
+            }
+            100% {
+                text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+            }
         }
         h1 {
             animation: glow 3s infinite;
@@ -101,26 +100,25 @@
             .container {
                 padding: 10px;
             }
+            .section {
+                padding: 20px;
+            }
             h1 {
-                font-size: 2rem;
+                font-size: 2em;
             }
-            .tagline {
-                font-size: 1.2rem;
-            }
-            .main-section {
-                height: auto;
-                min-height: 100vh;
+            .hero p {
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="main-section">
+    <div class="hero section">
         <div class="container">
             <h1>Khosraw (Kho) Azizi</h1>
-            <p class="tagline">Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
-            <p class="location">Based in Plano, Texas, United States</p>
-            <p class="quick-bio">I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness.</p>
+            <p>Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
+            <p>Based in Plano, Texas, United States</p>
+            <p>I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness. I enjoy working with people and learning new things. I always look for more challenging problems to solve and use the tools around me to help others the best I can. When there's the next best thing, I am ready to learn about it.</p>
             <div class="social-links">
                 <a href="https://www.linkedin.com/in/khosraw-azizi" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://x.com/azizikhosraw" target="_blank"><i class="fab fa-twitter"></i></a>
