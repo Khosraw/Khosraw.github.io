@@ -139,6 +139,43 @@
         .social-links a:hover {
             color: #bb86fc;
         }
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(3, 218, 198, 0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            animation: bounce 2s infinite;
+            z-index: 1000;
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            color: #fff;
+            font-size: 24px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
         .experience-item:hover, .education-item:hover {
             background: rgba(255, 255, 255, 0.1);
             box-shadow: 0 15px 30px rgba(3, 218, 198, 0.2), 0 0 15px rgba(187, 134, 252, 0.3);
@@ -239,6 +276,8 @@
         <div class="blur-circle"></div>
         <div class="blur-circle"></div>
     </div>
+
+    <div class="scroll-indicator"></div>
 
     <div class="hero section">
         <div class="container">
@@ -386,6 +425,25 @@
             span.textContent = letter;
             span.className = 'interactive-letter';
             nameElement.appendChild(span);
+        });
+
+        // Scroll indicator functionality
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            if (scrollPosition > 100) {
+                scrollIndicator.style.opacity = '0';
+            } else {
+                scrollIndicator.style.opacity = '1';
+            }
+        });
+
+        scrollIndicator.addEventListener('click', () => {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
         });
     </script>
 </body>
