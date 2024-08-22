@@ -88,6 +88,42 @@
             opacity: 1;
             transform: translateX(0);
         }
+        .experience-item, .education-item {
+            margin-bottom: 30px;
+            border-left: 2px solid #03dac6;
+            padding: 20px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .experience-item::before, .education-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(255, 255, 255, 0.1) 10%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            opacity: 0;
+            transition: opacity 0.3s;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .experience-item:hover::before, .education-item:hover::before {
+            opacity: 1;
+        }
         @keyframes glow {
             0% {
                 text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
@@ -209,6 +245,24 @@
                 }
             });
         }
+
+        function handleMouseMove(event) {
+            const items = document.querySelectorAll('.experience-item, .education-item');
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                
+                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                    const xPercent = (x / rect.width) * 100;
+                    const yPercent = (y / rect.height) * 100;
+                    item.style.setProperty('--mouse-x', `${xPercent}%`);
+                    item.style.setProperty('--mouse-y', `${yPercent}%`);
+                }
+            });
+        }
+
+        document.addEventListener('mousemove', handleMouseMove);
 
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('load', handleScroll);
