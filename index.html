@@ -11,16 +11,57 @@
             font-family: 'Roboto Mono', monospace;
             line-height: 1.6;
             color: #e0e0e0;
-            max-width: 800px;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+        }
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #121212;
         }
         h1 {
             color: #bb86fc;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
         }
         h2 {
             color: #03dac6;
+        }
+        .main-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: #1e1e1e;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .location {
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+        .quick-bio {
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        .social-links {
+            margin-bottom: 2rem;
+        }
+        .social-links a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #03dac6;
+            transition: color 0.3s ease;
+            font-size: 24px;
+        }
+        .social-links a:hover {
+            color: #bb86fc;
         }
         .section {
             background-color: #1e1e1e;
@@ -36,16 +77,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-        .social-links a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: #03dac6;
-            transition: color 0.3s ease;
-            font-size: 24px;
-        }
-        .social-links a:hover {
-            color: #bb86fc;
-        }
         .experience-item, .education-item {
             margin-bottom: 15px;
             border-left: 2px solid #03dac6;
@@ -59,76 +90,85 @@
             transform: translateX(0);
         }
         @keyframes glow {
-            0% {
-                box-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(187, 134, 252, 0.8);
-            }
-            100% {
-                box-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
-            }
+            0% { box-shadow: 0 0 5px rgba(187, 134, 252, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(187, 134, 252, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(187, 134, 252, 0.5); }
         }
         h1 {
             animation: glow 3s infinite;
         }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .tagline {
+                font-size: 1.2rem;
+            }
+            .main-section {
+                height: auto;
+                min-height: 100vh;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="section">
-        <h1>Khosraw (Kho) Azizi</h1>
-        <p>Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
-        <p>Based in Plano, Texas, United States</p>
-        <div class="social-links">
-            <a href="https://www.linkedin.com/in/khosraw-azizi" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="https://x.com/azizikhosraw" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://www.instagram.com/kho.azizi" target="_blank"><i class="fab fa-instagram"></i></a>
+    <div class="main-section">
+        <div class="container">
+            <h1>Khosraw (Kho) Azizi</h1>
+            <p class="tagline">Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
+            <p class="location">Based in Plano, Texas, United States</p>
+            <p class="quick-bio">I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness.</p>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/khosraw-azizi" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="https://x.com/azizikhosraw" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/kho.azizi" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>About Me</h2>
-        <p>I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness. I enjoy working with people and learning new things. I always look for more challenging problems to solve and use the tools around me to help others the best I can. When there's the next best thing, I am ready to learn about it.</p>
-    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Experience</h2>
+            <div class="experience-item">
+                <h3>Secant</h3>
+                <p>Co-Founder | Jun 2024 - Present</p>
+                <p>AI for students, teachers, and institutions. Backed by 1517 Fund.</p>
+            </div>
+            <div class="experience-item">
+                <h3>Codin (Acquired)</h3>
+                <p>Co-Founder & COO | Jul 2023 - Aug 2024</p>
+                <p>Acquired by Exponent. A platform to help developers find their next project, faster.</p>
+            </div>
+            <div class="experience-item">
+                <h3>Project: Empower</h3>
+                <p>Executive Backend Developer | Jan 2023 - Jun 2024</p>
+                <p>A platform helping FGLI students succeed in education. 5+ million unique users, $200k+ worth raised.</p>
+            </div>
+            <div class="experience-item">
+                <h3>Google</h3>
+                <p>AI Product Researcher, Google Labs | Jun 2023 - Dec 2023</p>
+            </div>
+        </div>
 
-    <div class="section">
-        <h2>Experience</h2>
-        <div class="experience-item">
-            <h3>Secant</h3>
-            <p>Co-Founder | Jun 2024 - Present</p>
-            <p>AI for students, teachers, and institutions. Backed by 1517 Fund.</p>
-        </div>
-        <div class="experience-item">
-            <h3>Codin (Acquired)</h3>
-            <p>Co-Founder & COO | Jul 2023 - Aug 2024</p>
-            <p>Acquired by Exponent. A platform to help developers find their next project, faster.</p>
-        </div>
-        <div class="experience-item">
-            <h3>Project: Empower</h3>
-            <p>Executive Backend Developer | Jan 2023 - Jun 2024</p>
-            <p>A platform helping FGLI students succeed in education. 5+ million unique users, $200k+ worth raised.</p>
-        </div>
-        <div class="experience-item">
-            <h3>Google</h3>
-            <p>AI Product Researcher, Google Labs | Jun 2023 - Dec 2023</p>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Education</h2>
-        <div class="education-item">
-            <h3>The University of Texas at Austin</h3>
-            <p>Bachelor of Science and Arts - BSA, Computer Science, Philosophy Minor | 2024 - 2028</p>
-        </div>
-        <div class="education-item">
-            <h3>Collin College</h3>
-            <p>Dual Credit Program | Aug 2023 - May 2024</p>
-            <p>GPA: 4.0 Multivariable Calculus + Differential Equations</p>
-        </div>
-        <div class="education-item">
-            <h3>Plano West Senior High School</h3>
-            <p>High School Diploma, General Studies | Aug 2022 - May 2024</p>
-            <p>Grade: Summa Cum Laude</p>
+        <div class="section">
+            <h2>Education</h2>
+            <div class="education-item">
+                <h3>The University of Texas at Austin</h3>
+                <p>Bachelor of Science and Arts - BSA, Computer Science, Philosophy Minor | 2024 - 2028</p>
+            </div>
+            <div class="education-item">
+                <h3>Collin College</h3>
+                <p>Dual Credit Program | Aug 2023 - May 2024</p>
+                <p>GPA: 4.0 Multivariable Calculus + Differential Equations</p>
+            </div>
+            <div class="education-item">
+                <h3>Plano West Senior High School</h3>
+                <p>High School Diploma, General Studies | Aug 2022 - May 2024</p>
+                <p>Grade: Summa Cum Laude</p>
+            </div>
         </div>
     </div>
 
