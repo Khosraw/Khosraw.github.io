@@ -7,6 +7,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        .startup-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .startup-animation.fade-out {
+            opacity: 0;
+        }
+
+        .startup-text {
+            font-size: 3em;
+            color: #03dac6;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: textReveal 2s forwards;
+        }
+
+        .startup-line {
+            position: absolute;
+            background-color: #bb86fc;
+            transform: scaleX(0);
+        }
+
+        .startup-line-1 {
+            top: 20%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            animation: lineExpand 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
+        }
+
+        .startup-line-2 {
+            bottom: 20%;
+            right: 0;
+            width: 100%;
+            height: 1px;
+            animation: lineExpand 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.7s forwards;
+        }
+
+        @keyframes textReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes lineExpand {
+            to {
+                transform: scaleX(1);
+            }
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
@@ -368,6 +430,12 @@
     </style>
 </head>
 <body>
+    <div class="startup-animation">
+        <div class="startup-text">Khosraw Azizi</div>
+        <div class="startup-line startup-line-1"></div>
+        <div class="startup-line startup-line-2"></div>
+    </div>
+
     <div class="background">
         <div class="blur-circle"></div>
         <div class="blur-circle"></div>
@@ -442,6 +510,16 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(() => {
+                const startupAnimation = document.querySelector('.startup-animation');
+                startupAnimation.classList.add('fade-out');
+                setTimeout(() => {
+                    startupAnimation.style.display = 'none';
+                }, 500);
+            }, 3000);
+        });
+
         function isElementPartiallyInViewport(el) {
             var rect = el.getBoundingClientRect();
             var windowHeight = (window.innerHeight || document.documentElement.clientHeight);
