@@ -100,6 +100,8 @@
             backdrop-filter: blur(5px);
             position: relative;
             overflow: hidden;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
         }
 
         .experience-item::before, .education-item::before {
@@ -247,18 +249,31 @@
         }
 
         function handleMouseMove(event) {
-            const items = document.querySelectorAll('.experience-item, .education-item');
-            items.forEach(item => {
-                const rect = item.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                
-                item.style.setProperty('--mouse-x', `${x}px`);
-                item.style.setProperty('--mouse-y', `${y}px`);
-            });
+            const item = event.currentTarget;
+            const rect = item.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            item.style.setProperty('--mouse-x', `${x}px`);
+            item.style.setProperty('--mouse-y', `${y}px`);
+
+            // Calculate tilt
+            const tiltX = -(y / rect.height - 0.5) * 10; // Max 5 degree tilt
+            const tiltY = (x / rect.width - 0.5) * 10; // Max 5 degree tilt
+
+            item.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
         }
 
-        document.addEventListener('mousemove', handleMouseMove);
+        function handleMouseLeave(event) {
+            const item = event.currentTarget;
+            item.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        }
+
+        const items = document.querySelectorAll('.experience-item, .education-item');
+        items.forEach(item => {
+            item.addEventListener('mousemove', handleMouseMove);
+            item.addEventListener('mouseleave', handleMouseLeave);
+        });
 
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('load', handleScroll);
