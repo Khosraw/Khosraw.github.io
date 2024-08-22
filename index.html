@@ -1,1 +1,172 @@
-"Hello World" 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khosraw (Kho) Azizi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1.6;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+        }
+        h1 {
+            color: #bb86fc;
+        }
+        h2 {
+            color: #03dac6;
+        }
+        .section {
+            background-color: #1e1e1e;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .social-links a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #03dac6;
+            transition: color 0.3s ease;
+            font-size: 24px;
+        }
+        .social-links a:hover {
+            color: #bb86fc;
+        }
+        .experience-item, .education-item {
+            margin-bottom: 15px;
+            border-left: 2px solid #03dac6;
+            padding-left: 10px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .experience-item.visible, .education-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(187, 134, 252, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+            }
+        }
+        h1 {
+            animation: glow 3s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h1>Khosraw (Kho) Azizi</h1>
+        <p>Building Secant | CS@UT'28 | Dell Scholar | 3x Founder, 1 Exit</p>
+        <p>Based in Plano, Texas, United States</p>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/in/khosraw-azizi" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="https://x.com/azizikhosraw" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.instagram.com/kho.azizi" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>About Me</h2>
+        <p>I am an 18-year-old from Kabul, Afghanistan, and I am currently the Co-Founder of Secant. I am a curious and motivated individual with the purpose of changing the world. My only focus is to maximize humanity's happiness. I enjoy working with people and learning new things. I always look for more challenging problems to solve and use the tools around me to help others the best I can. When there's the next best thing, I am ready to learn about it.</p>
+    </div>
+
+    <div class="section">
+        <h2>Experience</h2>
+        <div class="experience-item">
+            <h3>Secant</h3>
+            <p>Co-Founder | Jun 2024 - Present</p>
+            <p>AI for students, teachers, and institutions. Backed by 1517 Fund.</p>
+        </div>
+        <div class="experience-item">
+            <h3>Codin (Acquired)</h3>
+            <p>Co-Founder & COO | Jul 2023 - Aug 2024</p>
+            <p>Acquired by Exponent. A platform to help developers find their next project, faster.</p>
+        </div>
+        <div class="experience-item">
+            <h3>Project: Empower</h3>
+            <p>Executive Backend Developer | Jan 2023 - Jun 2024</p>
+            <p>A platform helping FGLI students succeed in education. 5+ million unique users, $200k+ worth raised.</p>
+        </div>
+        <div class="experience-item">
+            <h3>Google</h3>
+            <p>AI Product Researcher, Google Labs | Jun 2023 - Dec 2023</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Education</h2>
+        <div class="education-item">
+            <h3>The University of Texas at Austin</h3>
+            <p>Bachelor of Science and Arts - BSA, Computer Science, Philosophy Minor | 2024 - 2028</p>
+        </div>
+        <div class="education-item">
+            <h3>Collin College</h3>
+            <p>Dual Credit Program | Aug 2023 - May 2024</p>
+            <p>GPA: 4.0 Multivariable Calculus + Differential Equations</p>
+        </div>
+        <div class="education-item">
+            <h3>Plano West Senior High School</h3>
+            <p>High School Diploma, General Studies | Aug 2022 - May 2024</p>
+            <p>Grade: Summa Cum Laude</p>
+        </div>
+    </div>
+
+    <script>
+        function isElementPartiallyInViewport(el) {
+            var rect = el.getBoundingClientRect();
+            var windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+            var windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+
+            var vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0);
+            var horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0);
+
+            return (vertInView && horInView);
+        }
+
+        function handleScroll() {
+            var sections = document.querySelectorAll('.section');
+            var subsections = document.querySelectorAll('.experience-item, .education-item');
+
+            sections.forEach(function(section) {
+                if (isElementPartiallyInViewport(section)) {
+                    section.classList.add('visible');
+                } else {
+                    section.classList.remove('visible');
+                }
+            });
+
+            subsections.forEach(function(subsection) {
+                if (isElementPartiallyInViewport(subsection)) {
+                    subsection.classList.add('visible');
+                } else {
+                    subsection.classList.remove('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('load', handleScroll);
+    </script>
+</body>
+</html>
