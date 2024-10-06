@@ -244,6 +244,14 @@ function initParticles() {
         }
     }
 
+    canvas.addEventListener('touchstart', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+        createBurst(touchX, touchY);
+    });
+
     window.addEventListener('mousemove', throttle((e) => {
         mouse.x = e.x;
         mouse.y = e.y;
