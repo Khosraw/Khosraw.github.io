@@ -47,23 +47,32 @@ function initParticles() {
         this.dy = dy;
         this.size = size;
         this.color = color;
-        this.shape = Math.random() > 0.5 ? 'circle' : 'triangle';
+        let random = Math.random();
+        this.shape = random < 0.25 ? 'circle' : random < 0.5 ? 'triangle' : random < 0.75 ? 'square' : 'star';
+        this.rotation = Math.random() * 360;
     
         this.draw = function() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation * Math.PI / 180);
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.color;
             ctx.shadowBlur = 20;
             ctx.beginPath();
             if (this.shape === 'circle') {
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2, false);
                 ctx.fill();
             } else if (this.shape === 'triangle') {
-                ctx.moveTo(this.x, this.y - this.size);
-                ctx.lineTo(this.x + this.size, this.y + this.size);
-                ctx.lineTo(this.x - this.size, this.y + this.size);
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(this.size, this.size);
+                ctx.lineTo(-this.size, this.size);
                 ctx.closePath();
                 ctx.fill();
+            } else if (this.shape === 'square') {
+                ctx.rect(-this.size, -this.size, this.size * 2, this.size * 2);
+                ctx.fill();
             }
+            ctx.restore();
         };
     
         this.update = function() {
@@ -108,34 +117,18 @@ function initParticles() {
         
             // Change color based on speed
             const speedFactor = Math.min(speed / speedLimit, 1);
-            this.color = interpolateColor(colorOptions[0], colorOptions[2], speedFactor);
+            const colorIndex = Math.floor(speedFactor * (colorOptions.length - 1));
+            this.color = colorOptions[colorIndex];
+
+            this.rotationSpeed = Math.random() * 0.1 - 1;
+
+            this.rotation += this.rotationSpeed;
+            if (this.rotation >= 360) this.rotation = 0;
+            if (this.rotation < 0) this.rotation = 360;
+
         
             this.draw();
         };
-        
-        // Utility function to interpolate between two colors
-        function interpolateColor(color1, color2, factor) {
-            const c1 = hexToRgb(color1);
-            const c2 = hexToRgb(color2);
-            const r = Math.round(c1.r + (c2.r - c1.r) * factor);
-            const g = Math.round(c1.g + (c2.g - c1.g) * factor);
-            const b = Math.round(c1.b + (c2.b - c1.b) * factor);
-            return `rgb(${r}, ${g}, ${b})`;
-        }
-        
-        // Utility function to convert hex to RGB
-        function hexToRgb(hex) {
-            // Remove '#' if present
-            hex = hex.replace('#', '');
-            if (hex.length === 3) {
-                hex = hex.split('').map(char => char + char).join('');
-            }
-            const bigint = parseInt(hex, 16);
-            const r = (bigint >> 16) & 255;
-            const g = (bigint >> 8) & 255;
-            const b = bigint & 255;
-            return { r, g, b };
-        }
     }
 
     // Click event listener for bursts
@@ -148,7 +141,7 @@ function initParticles() {
 
     // Function to create a burst of particles
     function createBurst(x, y) {
-        const burstCount = 10;
+        const burstCount = 15;
         for (let i = 0; i < burstCount; i++) {
             let size = Math.random() * 3 + 1;
             let angle = Math.random() * Math.PI * 2;
@@ -156,18 +149,22 @@ function initParticles() {
             let dx = Math.cos(angle) * speed;
             let dy = Math.sin(angle) * speed;
             let color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
-            particles.push(new Particle(x, y, dx, dy, size, color));
+            let shape = ['circle', 'triangle', 'square'][Math.floor(Math.random() * 3)];
+            particles.push(new Particle(x, y, dx, dy, size, color, shape));
         }
     }
+    
 
     // Initialize particles
     function init() {
         particles = [];
         let particleCount;
         if (canvas.width < 600) {
-            particleCount = (canvas.width * canvas.height) / 20000;
+            particleCount = Math.floor((canvas.width * canvas.height) / 20000);
+        } else if (canvas.width < 1200) {
+            particleCount = Math.floor((canvas.width * canvas.height) / 15000);
         } else {
-            particleCount = (canvas.width * canvas.height) / 10000;
+            particleCount = Math.floor((canvas.width * canvas.height) / 10000);
         }
         for (let i = 0; i < particleCount; i++) {
             let size = Math.random() * 3 + 1;
@@ -176,9 +173,11 @@ function initParticles() {
             let dx = (Math.random() - 0.5) * 1;
             let dy = (Math.random() - 0.5) * 1;
             let color = colors[Math.floor(Math.random() * colors.length)];
-            particles.push(new Particle(x, y, dx, dy, size, color));
+            let shape = ['circle', 'triangle', 'square'][Math.floor(Math.random() * 3)];
+            particles.push(new Particle(x, y, dx, dy, size, color, shape));
         }
     }
+    
 
     function connectParticles() {
         for (let a = 0; a < particles.length; a++) {
@@ -186,7 +185,11 @@ function initParticles() {
                 let distance = Math.hypot(particles[a].x - particles[b].x, particles[a].y - particles[b].y);
                 if (distance < 100) {
                     const opacity = 1 - distance / 100;
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                    // Blend colors based on particle colors
+                    const color1 = hexToRgb(particles[a].color);
+                    const color2 = hexToRgb(particles[b].color);
+                    const blended = blendColors(color1, color2, 0.5);
+                    ctx.strokeStyle = `rgba(${blended.r}, ${blended.g}, ${blended.b}, ${opacity})`;
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(particles[a].x, particles[a].y);
@@ -196,10 +199,28 @@ function initParticles() {
             }
         }
     }
-    
+
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    // Helper function to blend colors
+    function blendColors(color1, color2, ratio) {
+        const r = Math.round(color1.r * (1 - ratio) + color2.r * ratio);
+        const g = Math.round(color1.g * (1 - ratio) + color2.g * ratio);
+        const b = Math.round(color1.b * (1 - ratio) + color2.b * ratio);
+        return { r, g, b };
+    }
+
     function animate() {
         requestAnimationFrame(animate);
-        ctx.fillStyle = 'rgba(18, 18, 18, 0.1)';
+        ctx.fillStyle = 'rgba(18, 18, 18, 0.05)';
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     
         particles.forEach(particle => particle.update());
