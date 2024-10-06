@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // Initialize particle background
     initParticles();
+
+    setup3DObjectInteractivity();
 });
 
 function initParticles() {
@@ -403,4 +405,74 @@ function setupEventListeners() {
             behavior: 'smooth'
         });
     });
+}
+
+// 3D Rotating Object Interactivity
+function setup3DObjectInteractivity() {
+    const rotatingObject = document.querySelector('.rotating-object');
+    let rotationX = 0;
+    let rotationY = 0;
+    let isDragging = false;
+    let startX, startY;
+    let autoRotationSpeed = 0.2;
+    let lastTime = 0;
+
+    function updateRotation(time) {
+        if (!isDragging) {
+            const deltaTime = time - lastTime;
+            rotationX += autoRotationSpeed * (deltaTime / 16);
+            rotationY += autoRotationSpeed * (deltaTime / 16);
+        }
+        rotatingObject.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+        lastTime = time;
+        requestAnimationFrame(updateRotation);
+    }
+
+    rotatingObject.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        rotatingObject.style.transition = 'none';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            rotationY += deltaX * 0.5;
+            rotationX -= deltaY * 0.5;
+            startX = e.clientX;
+            startY = e.clientY;
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+        rotatingObject.style.transition = 'transform 0.3s ease';
+    });
+
+    rotatingObject.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        rotatingObject.style.transition = 'none';
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            const deltaX = e.touches[0].clientX - startX;
+            const deltaY = e.touches[0].clientY - startY;
+            rotationY += deltaX * 0.5;
+            rotationX -= deltaY * 0.5;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+        isDragging = false;
+        rotatingObject.style.transition = 'transform 0.3s ease';
+    });
+
+    requestAnimationFrame(updateRotation);
 }
