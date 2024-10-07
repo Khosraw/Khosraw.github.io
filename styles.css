@@ -559,7 +559,7 @@ h1 {
     height: 400px;
     transform-style: preserve-3d;
     animation: rotate 20s infinite linear;
-    z-index: 1;
+    z-index: 0;
 }
 
 .rotating-object .face {
