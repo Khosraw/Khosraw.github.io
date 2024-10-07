@@ -630,16 +630,28 @@ h1 {
     animation: rotate 20s infinite linear;
 }
 
-.rotating-object.glitch-effect .face {
-    background: rgba(255, 0, 0, 0.2);
-    border-color: rgba(255, 105, 180, 0.5);
-    box-shadow: inset 0 0 120px rgba(255, 0, 0, 0.3), 0 0 10px rgba(255, 105, 180, 0.5);
-    transition: all 0.1s ease;
+@keyframes flicker {
+    0%, 100% { 
+        background: rgba(255, 0, 0, 0.2);
+        border-color: rgba(255, 0, 0, 0.5);
+        box-shadow: inset 0 0 120px rgba(255, 0, 0, 0.3), 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    50% {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.5);
+    }
 }
 
-.rotating-object.glitch-effect .face1 { animation: glitch1 0.1s infinite; }
-.rotating-object.glitch-effect .face2 { animation: glitch2 0.1s infinite; }
-.rotating-object.glitch-effect .face3 { animation: glitch3 0.1s infinite; }
-.rotating-object.glitch-effect .face4 { animation: glitch4 0.1s infinite; }
-.rotating-object.glitch-effect .face5 { animation: glitch5 0.1s infinite; }
-.rotating-object.glitch-effect .face6 { animation: glitch6 0.1s infinite; }
+.rotating-object.glitch-effect .face {
+    animation: 
+        flicker 0.1s infinite,
+        glitch1 0.1s infinite;
+}
+
+.rotating-object.glitch-effect .face1 { animation: flicker 0.1s infinite, glitch1 0.1s infinite; }
+.rotating-object.glitch-effect .face2 { animation: flicker 0.1s infinite, glitch2 0.1s infinite; }
+.rotating-object.glitch-effect .face3 { animation: flicker 0.1s infinite, glitch3 0.1s infinite; }
+.rotating-object.glitch-effect .face4 { animation: flicker 0.1s infinite, glitch4 0.1s infinite; }
+.rotating-object.glitch-effect .face5 { animation: flicker 0.1s infinite, glitch5 0.1s infinite; }
+.rotating-object.glitch-effect .face6 { animation: flicker 0.1s infinite, glitch6 0.1s infinite; }
