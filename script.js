@@ -416,6 +416,7 @@ function setup3DObjectInteractivity() {
     let startX, startY;
     let autoRotationSpeed = 0.2;
     let lastTime = 0;
+    let isGlitching = false;
 
     function updateRotation(time) {
         if (!isDragging) {
@@ -451,6 +452,7 @@ function setup3DObjectInteractivity() {
         rotatingObject.style.transition = 'transform 0.3s ease';
     });
 
+    // Touch events (similar to mouse events)
     rotatingObject.addEventListener('touchstart', (e) => {
         isDragging = true;
         startX = e.touches[0].clientX;
@@ -472,6 +474,19 @@ function setup3DObjectInteractivity() {
     window.addEventListener('touchend', () => {
         isDragging = false;
         rotatingObject.style.transition = 'transform 0.3s ease';
+    });
+
+    // Add event listener for spacebar press
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space' && !isGlitching) {
+            event.preventDefault(); // Prevent page scrolling
+            isGlitching = true;
+            rotatingObject.classList.add('glitch-effect');
+            setTimeout(() => {
+                rotatingObject.classList.remove('glitch-effect');
+                isGlitching = false;
+            }, 500); // Glitch effect duration
+        }
     });
 
     requestAnimationFrame(updateRotation);
