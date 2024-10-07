@@ -407,73 +407,75 @@ function setupEventListeners() {
     });
 }
 
-// 3D Rotating Object Interactivity
 function setup3DObjectInteractivity() {
     const rotatingObject = document.querySelector('.rotating-object');
     let rotationX = 0;
     let rotationY = 0;
-    let isDragging = false;
-    let startX, startY;
+    let isMouseOver = false;
+    let centerX, centerY;
     let autoRotationSpeed = 0.2;
     let lastTime = 0;
     let isGlitching = false;
 
+    const sensitivity = 0.1; // Adjust this to change rotation sensitivity
+
+    function updateObjectCenter() {
+        const rect = rotatingObject.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+    }
+
     function updateRotation(time) {
-        if (!isDragging) {
-            const deltaTime = time - lastTime;
-            rotationX += autoRotationSpeed * (deltaTime / 16);
-            rotationY += autoRotationSpeed * (deltaTime / 16);
+        const deltaTime = (time - lastTime) / 16; // Normalize to 60fps
+
+        if (!isMouseOver) {
+            // Apply auto-rotation when mouse is not over the object
+            rotationY += autoRotationSpeed * deltaTime;
         }
+
         rotatingObject.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
         lastTime = time;
         requestAnimationFrame(updateRotation);
     }
 
-    rotatingObject.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        rotatingObject.style.transition = 'none';
-    });
+    function handleMouseMove(e) {
+        if (isMouseOver) {
+            // Calculate the mouse position relative to the center of the object
+            const deltaX = e.clientX - centerX;
+            const deltaY = e.clientY - centerY;
 
-    window.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            rotationY += deltaX * 0.5;
-            rotationX -= deltaY * 0.5;
-            startX = e.clientX;
-            startY = e.clientY;
+            // Update rotation based on mouse position
+            rotationY = deltaX * sensitivity;
+            rotationX = -deltaY * sensitivity;
         }
+    }
+
+    // Mouse events
+    rotatingObject.addEventListener('mouseenter', () => {
+        isMouseOver = true;
+        updateObjectCenter();
     });
 
-    window.addEventListener('mouseup', () => {
-        isDragging = false;
-        rotatingObject.style.transition = 'transform 0.3s ease';
+    rotatingObject.addEventListener('mouseleave', () => {
+        isMouseOver = false;
     });
 
-    // Touch events (similar to mouse events)
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Touch events (basic support)
     rotatingObject.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        rotatingObject.style.transition = 'none';
+        isMouseOver = true;
+        updateObjectCenter();
+        handleMouseMove(e.touches[0]);
     }, { passive: false });
 
-    window.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-            const deltaX = e.touches[0].clientX - startX;
-            const deltaY = e.touches[0].clientY - startY;
-            rotationY += deltaX * 0.5;
-            rotationX -= deltaY * 0.5;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }
+    rotatingObject.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        handleMouseMove(e.touches[0]);
     }, { passive: false });
 
-    window.addEventListener('touchend', () => {
-        isDragging = false;
-        rotatingObject.style.transition = 'transform 0.3s ease';
+    rotatingObject.addEventListener('touchend', () => {
+        isMouseOver = false;
     });
 
     // Add event listener for spacebar press
@@ -485,9 +487,15 @@ function setup3DObjectInteractivity() {
             setTimeout(() => {
                 rotatingObject.classList.remove('glitch-effect');
                 isGlitching = false;
-            }, 500); // Glitch effect duration
+            }, 350); // Glitch effect duration
         }
     });
+
+    // Update object center on window resize
+    window.addEventListener('resize', updateObjectCenter);
+
+    // Initial center calculation
+    updateObjectCenter();
 
     requestAnimationFrame(updateRotation);
 }
