@@ -1,27 +1,15 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    const startupAnimation = document.querySelector('.startup-animation');
-    const contentWrapper = document.querySelector('.content-wrapper');
-    const scrollIndicator = document.querySelector('.scroll-indicator');
-    const nameElement = document.getElementById('interactive-name');
+    // Removed startup animation initialization for a cleaner look:
+    // const startupAnimation = document.querySelector('.startup-animation');
+    // const contentWrapper = document.querySelector('.content-wrapper');
+    // createParticles();
+    // setupStartupAnimation();
 
-    // Create particles
-    createParticles();
-
-    // Setup startup animation
-    setupStartupAnimation();
-
-    // Setup interactive name
+    // Initialize interactive elements directly
     setupInteractiveName();
-
-    // Apply interactive text
     applyInteractiveText();
-
-    // Setup event listeners
     setupEventListeners();
-
-    // Initialize particle background
     initParticles();
-
     setup3DObjectInteractivity();
 });
 
