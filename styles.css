@@ -162,6 +162,16 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    /* Animated gradient background */
+    background: linear-gradient(-45deg, #1a1a1a, #2a2a2a, #3a3a3a, #4a4a4a);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .content-wrapper {
@@ -224,12 +234,13 @@ h1 {
 
 .interactive-letter {
     display: inline-block;
-    transition: transform 0.3s ease, color 0.3s ease;
+    transition: transform 0.3s ease, color 0.3s ease, filter 0.3s ease;
 }
 
 .interactive-letter:hover {
     transform: translateY(-5px);
     color: #03dac6;
+    filter: brightness(1.2);
 }
 
 .interactive-text {
@@ -404,11 +415,12 @@ a:hover::after {
     margin-right: 20px;
     text-decoration: none;
     color: #03dac6;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
     font-size: 28px;
 }
 .social-links a:hover {
     color: #bb86fc;
+    transform: scale(1.1);
 }
 
 .scroll-indicator {
@@ -674,3 +686,27 @@ h1 {
 .rotating-object.glitch-effect .face4 { animation: flicker 0.1s infinite, glitch4 0.1s infinite; }
 .rotating-object.glitch-effect .face5 { animation: flicker 0.1s infinite, glitch5 0.1s infinite; }
 .rotating-object.glitch-effect .face6 { animation: flicker 0.1s infinite, glitch6 0.1s infinite; }
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #03dac6;
+    border-radius: 10px;
+}
+
+/* Define Theme Variables */
+:root {
+    --primary-color: #03dac6;
+    --secondary-color: #bb86fc;
+    --dark-bg: #1a1a1a;
+    --lighter-bg: #2a2a2a;
+}
+
+body {
+    background: linear-gradient(45deg, var(--dark-bg), var(--lighter-bg));
+}
