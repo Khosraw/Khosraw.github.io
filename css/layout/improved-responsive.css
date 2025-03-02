@@ -1,0 +1,112 @@
+/* Improved responsive design */
+
+/* Base responsive adjustments */
+@media (max-width: 1200px) {
+    .container {
+        width: 90%;
+        max-width: 900px;
+    }
+}
+
+@media (max-width: 992px) {
+    .hero-content {
+        flex-direction: column-reverse;
+        text-align: center;
+    }
+    
+    .hero-text {
+        margin-top: 30px;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+    
+    .profile-picture-container {
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    h2 {
+        font-size: 1.8rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
+    }
+    
+    .experience-item, .education-item {
+        padding: 20px 15px;
+    }
+    
+    .acquisition-badge {
+        display: inline-block;
+        margin-top: 5px;
+        margin-left: 0;
+    }
+    
+    .rotating-object {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-content {
+        padding: 30px 0;
+    }
+    
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .experience-item h3, .education-item h3 {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .acquisition-badge {
+        margin-top: 8px;
+        font-size: 0.65em;
+    }
+    
+    .social-links a {
+        margin: 0 10px;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #03dac6;
+        --secondary-color: #bb86fc;
+    }
+    
+    .acquisition-badge {
+        color: #000;
+    }
+}
+
+/* High contrast mode for accessibility */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #00ffee;
+        --secondary-color: #d4a6ff;
+        --text-color: #ffffff;
+    }
+    
+    .experience-item, .education-item {
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .acquisition-badge {
+        background: var(--primary-color);
+        color: #000000;
+        font-weight: 900;
+    }
+} 

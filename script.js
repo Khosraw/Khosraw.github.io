@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupEventListeners();
     initParticles();
     setup3DObjectInteractivity();
+    enhanceAcquisitionBadge();
 });
 
 function initParticles() {
@@ -486,4 +487,84 @@ function setup3DObjectInteractivity() {
     updateObjectCenter();
 
     requestAnimationFrame(updateRotation);
+}
+
+function enhanceAcquisitionBadge() {
+    const acquisitionBadge = document.querySelector('.acquisition-badge');
+    if (!acquisitionBadge) return;
+    
+    // Add tooltip functionality
+    acquisitionBadge.setAttribute('title', 'Acquired by Exponent in August 2024');
+    
+    // Add click event to show more info
+    acquisitionBadge.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Check if tooltip already exists
+        if (document.querySelector('.acquisition-tooltip')) {
+            document.querySelector('.acquisition-tooltip').remove();
+            return;
+        }
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'acquisition-tooltip';
+        tooltip.innerHTML = `
+            <p>Codin was acquired by Exponent in August 2024.</p>
+            <p>The platform helped young developers find meaningful tech projects.</p>
+        `;
+        
+        // Position tooltip
+        const rect = acquisitionBadge.getBoundingClientRect();
+        tooltip.style.position = 'absolute';
+        tooltip.style.top = rect.bottom + 10 + 'px';
+        tooltip.style.left = rect.left + 'px';
+        tooltip.style.zIndex = '1000';
+        tooltip.style.background = 'rgba(30, 30, 30, 0.95)';
+        tooltip.style.padding = '15px';
+        tooltip.style.borderRadius = '8px';
+        tooltip.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
+        tooltip.style.backdropFilter = 'blur(10px)';
+        tooltip.style.maxWidth = '300px';
+        tooltip.style.border = '1px solid var(--primary-color)';
+        
+        // Add animation
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(10px)';
+        tooltip.style.transition = 'all 0.3s ease';
+        
+        // Add to DOM
+        document.body.appendChild(tooltip);
+        
+        // Trigger animation
+        setTimeout(() => {
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // Close on click outside
+        document.addEventListener('click', function closeTooltip(e) {
+            if (!tooltip.contains(e.target) && e.target !== acquisitionBadge) {
+                tooltip.style.opacity = '0';
+                tooltip.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    tooltip.remove();
+                }, 300);
+                
+                document.removeEventListener('click', closeTooltip);
+            }
+        });
+    });
+    
+    // Add hover effect
+    acquisitionBadge.addEventListener('mouseover', function() {
+        this.style.transform = 'translateY(-3px) scale(1.05)';
+        this.style.boxShadow = '0 5px 15px rgba(187, 134, 252, 0.6)';
+    });
+    
+    acquisitionBadge.addEventListener('mouseout', function() {
+        this.style.transform = '';
+        this.style.boxShadow = '';
+    });
 }

@@ -10,6 +10,7 @@
 @import 'layout/hero.css';
 @import 'layout/sections.css';
 @import 'layout/responsive.css';
+@import 'layout/improved-responsive.css';
 
 /* Components */
 @import 'components/profile-picture.css';
@@ -17,10 +18,12 @@
 @import 'components/scroll-indicator.css';
 @import 'components/experience-items.css';
 @import 'components/interactive-elements.css';
+@import 'components/badges.css';
 
 /* Animations */
 @import 'animations/keyframes.css';
 @import 'animations/startup.css';
+@import 'animations/enhanced-animations.css';
 
 /* Effects */
 @import 'effects/particles.css';
