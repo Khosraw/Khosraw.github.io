@@ -19,11 +19,13 @@
 @import 'components/experience-items.css';
 @import 'components/interactive-elements.css';
 @import 'components/badges.css';
+@import 'components/skills.css';
 
 /* Animations */
 @import 'animations/keyframes.css';
 @import 'animations/startup.css';
 @import 'animations/enhanced-animations.css';
+@import 'animations/scroll-animations.css';
 
 /* Effects */
 @import 'effects/particles.css';

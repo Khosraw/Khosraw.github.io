@@ -14,7 +14,7 @@
     box-shadow: 0 2px 10px rgba(187, 134, 252, 0.4);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .acquisition-badge::before {
@@ -46,4 +46,37 @@
 .acquisition-badge:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 4px 15px rgba(187, 134, 252, 0.6);
+}
+
+/* Company badge styling */
+.company-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335);
+    color: #fff;
+    font-size: 0.7em;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-left: 10px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 10px rgba(66, 133, 244, 0.4);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.company-badge:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.6);
+}
+
+/* Tooltip for badges */
+.acquisition-tooltip, .company-tooltip {
+    color: var(--text-color);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 300px;
+    width: max-content;
 } 

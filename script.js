@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     initParticles();
     setup3DObjectInteractivity();
     enhanceAcquisitionBadge();
+    enhanceCompanyBadge();
+    setupScrollAnimations();
+    fixHoverAnimations();
 });
 
 function initParticles() {
@@ -556,15 +559,127 @@ function enhanceAcquisitionBadge() {
             }
         });
     });
+}
+
+function enhanceCompanyBadge() {
+    const companyBadge = document.querySelector('.company-badge');
+    if (!companyBadge) return;
     
-    // Add hover effect
-    acquisitionBadge.addEventListener('mouseover', function() {
-        this.style.transform = 'translateY(-3px) scale(1.05)';
-        this.style.boxShadow = '0 5px 15px rgba(187, 134, 252, 0.6)';
+    // Add tooltip functionality
+    companyBadge.setAttribute('title', 'Google Labs - Experimental Projects Division');
+    
+    // Add click event to show more info
+    companyBadge.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Check if tooltip already exists
+        if (document.querySelector('.company-tooltip')) {
+            document.querySelector('.company-tooltip').remove();
+            return;
+        }
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'company-tooltip';
+        tooltip.innerHTML = `
+            <p>Google Labs is Google's experimental division focused on innovative AI products.</p>
+            <p>Worked on cutting-edge AI research and product development.</p>
+        `;
+        
+        // Position tooltip
+        const rect = companyBadge.getBoundingClientRect();
+        tooltip.style.position = 'absolute';
+        tooltip.style.top = rect.bottom + 10 + 'px';
+        tooltip.style.left = rect.left + 'px';
+        tooltip.style.zIndex = '1000';
+        tooltip.style.background = 'rgba(30, 30, 30, 0.95)';
+        tooltip.style.padding = '15px';
+        tooltip.style.borderRadius = '8px';
+        tooltip.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
+        tooltip.style.backdropFilter = 'blur(10px)';
+        tooltip.style.maxWidth = '300px';
+        tooltip.style.border = '1px solid #4285F4';
+        
+        // Add animation
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(10px)';
+        tooltip.style.transition = 'all 0.3s ease';
+        
+        // Add to DOM
+        document.body.appendChild(tooltip);
+        
+        // Trigger animation
+        setTimeout(() => {
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // Close on click outside
+        document.addEventListener('click', function closeTooltip(e) {
+            if (!tooltip.contains(e.target) && e.target !== companyBadge) {
+                tooltip.style.opacity = '0';
+                tooltip.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    tooltip.remove();
+                }, 300);
+                
+                document.removeEventListener('click', closeTooltip);
+            }
+        });
+    });
+}
+
+// Add scroll animations for sections
+function setupScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, {
+        threshold: 0.1
     });
     
-    acquisitionBadge.addEventListener('mouseout', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '';
+    // Observe all sections
+    document.querySelectorAll('.section').forEach(section => {
+        observer.observe(section);
+        section.classList.add('animate-on-scroll');
+    });
+    
+    // Observe all experience and education items
+    document.querySelectorAll('.experience-item, .education-item').forEach(item => {
+        observer.observe(item);
+        item.classList.add('animate-on-scroll');
+    });
+}
+
+// Fix hover animations
+function fixHoverAnimations() {
+    // Fix profile picture hover animation
+    const profilePicture = document.querySelector('.profile-picture-container');
+    if (profilePicture) {
+        profilePicture.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    }
+    
+    // Fix experience items hover animations
+    document.querySelectorAll('.experience-item, .education-item').forEach(item => {
+        item.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background 0.3s ease';
+    });
+    
+    // Fix skill items hover animations
+    document.querySelectorAll('.skill-item').forEach(item => {
+        item.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease, box-shadow 0.3s ease';
+    });
+    
+    // Fix badge hover animations
+    document.querySelectorAll('.acquisition-badge, .company-badge').forEach(badge => {
+        badge.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    });
+    
+    // Fix interactive elements hover animations
+    document.querySelectorAll('.interactive-letter, .interactive-text').forEach(element => {
+        element.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     });
 }
