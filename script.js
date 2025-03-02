@@ -671,6 +671,12 @@ function fixHoverAnimations() {
     // Fix skill items hover animations
     document.querySelectorAll('.skill-item').forEach(item => {
         item.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease, box-shadow 0.3s ease';
+        
+        // Add hover effect for skill icons (both img and i elements)
+        const icon = item.querySelector('img') || item.querySelector('i');
+        if (icon) {
+            icon.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        }
     });
     
     // Fix badge hover animations
@@ -681,5 +687,10 @@ function fixHoverAnimations() {
     // Fix interactive elements hover animations
     document.querySelectorAll('.interactive-letter, .interactive-text').forEach(element => {
         element.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    });
+    
+    // Add hover effect for skill categories
+    document.querySelectorAll('.skill-category').forEach(category => {
+        category.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background 0.3s ease';
     });
 }
