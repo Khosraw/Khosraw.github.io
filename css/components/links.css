@@ -1,0 +1,48 @@
+/* Link styles */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    position: relative;
+}
+
+a:hover {
+    color: var(--secondary-color);
+    text-shadow: 0 0 8px rgba(187, 134, 252, 0.5);
+}
+
+a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--secondary-color);
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+}
+
+a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Social links */
+.social-links {
+    margin-top: 30px;
+}
+
+.social-links a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: color 0.3s ease, transform 0.3s ease;
+    font-size: 28px;
+}
+
+.social-links a:hover {
+    color: var(--secondary-color);
+    transform: scale(1.1);
+} 

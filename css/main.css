@@ -1,0 +1,29 @@
+/* Main CSS file that imports all other CSS files */
+
+/* Base styles */
+@import 'base/variables.css';
+@import 'base/reset.css';
+@import 'base/typography.css';
+
+/* Layout styles */
+@import 'layout/container.css';
+@import 'layout/hero.css';
+@import 'layout/sections.css';
+@import 'layout/responsive.css';
+
+/* Components */
+@import 'components/profile-picture.css';
+@import 'components/links.css';
+@import 'components/scroll-indicator.css';
+@import 'components/experience-items.css';
+@import 'components/interactive-elements.css';
+
+/* Animations */
+@import 'animations/keyframes.css';
+@import 'animations/startup.css';
+
+/* Effects */
+@import 'effects/particles.css';
+@import 'effects/rotating-object.css';
+@import 'effects/glitch.css';
+@import 'effects/scrollbar.css'; 

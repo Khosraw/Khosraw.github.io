@@ -1,0 +1,44 @@
+/* 3D Rotating Object Styles */
+.rotating-object {
+    position: fixed;
+    bottom: 150px; /* Adjusted to be slightly higher */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px; /* Increased size */
+    height: 500px;
+    transform-style: preserve-3d;
+    animation: rotate 30s infinite linear; /* Slower rotation speed */
+    z-index: 0;
+}
+
+.rotating-object .face {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, rgba(3, 218, 198, 0.2), rgba(187, 134, 252, 0.2));
+    border: 1px solid rgba(187, 134, 252, 0.4);
+    box-shadow: 0 0 20px rgba(3, 218, 198, 0.3);
+    border-radius: 10px; /* Soft rounded corners for a modern look */
+}
+
+.rotating-object .face1 { 
+    transform: rotateY(0deg) translateZ(250px); 
+}
+.rotating-object .face2 { 
+    transform: rotateY(90deg) translateZ(250px); 
+    background: linear-gradient(135deg, rgba(187, 134, 252, 0.2), rgba(255, 126, 236, 0.2));
+}
+.rotating-object .face3 { 
+    transform: rotateY(180deg) translateZ(250px); 
+}
+.rotating-object .face4 { 
+    transform: rotateY(-90deg) translateZ(250px); 
+    background: linear-gradient(135deg, rgba(255, 126, 236, 0.2), rgba(159, 206, 201, 0.2));
+}
+.rotating-object .face5 { 
+    transform: rotateX(90deg) translateZ(250px); 
+}
+.rotating-object .face6 { 
+    transform: rotateX(-90deg) translateZ(250px); 
+    background: linear-gradient(135deg, rgba(159, 206, 201, 0.2), rgba(3, 218, 198, 0.2));
+} 

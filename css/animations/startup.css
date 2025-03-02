@@ -1,0 +1,157 @@
+/* Startup animation styles */
+/* You can comment these out if the startup animation is no longer used */
+/*
+.startup-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(18, 18, 18, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+    overflow: hidden;
+}
+
+.startup-animation.fade-out {
+    opacity: 0;
+}
+*/
+
+.startup-content {
+    text-align: center;
+    position: relative;
+}
+
+.startup-text {
+    font-size: 4em;
+    font-weight: bold;
+    color: var(--primary-color);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: textReveal 2s forwards;
+    text-shadow: 
+        0 0 7px rgba(3, 218, 198, 0.7),
+        0 0 10px rgba(3, 218, 198, 0.5),
+        0 0 21px rgba(3, 218, 198, 0.3);
+}
+
+.startup-subtext {
+    font-size: 1.5em;
+    color: var(--secondary-color);
+    opacity: 0;
+    animation: subtextReveal 2s 0.5s forwards;
+    text-shadow: 
+        0 0 7px rgba(187, 134, 252, 0.7),
+        0 0 10px rgba(187, 134, 252, 0.5);
+}
+
+.startup-line {
+    position: absolute;
+    background-color: var(--secondary-color);
+    transform: scaleX(0);
+}
+
+.startup-line-1, .startup-line-2 {
+    width: 100%;
+    height: 2px;
+    left: 0;
+    box-shadow: 
+        0 0 4px 2px rgba(207, 3, 218, 0.8),
+        0 0 3px 3px rgba(255, 126, 236, 0.4);
+}
+
+.startup-line-1 {
+    top: -20px;
+    animation: lineExpand 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
+}
+
+.startup-line-2 {
+    bottom: -20px;
+    animation: lineExpand 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.7s forwards;
+}
+
+.startup-circle {
+    position: absolute;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    box-shadow: 
+        0 0 10px rgba(3, 218, 198, 0.5),
+        0 0 20px rgba(3, 218, 198, 0.3),
+        inset 0 0 10px rgba(3, 218, 198, 0.5);
+}
+
+.startup-circle-1 {
+    width: 100px;
+    height: 100px;
+    top: 200px;
+    left: 0px;
+    animation: circleAppear 1.5s ease-out 1s forwards;
+}
+
+.startup-circle-2 {
+    width: 150px;
+    height: 150px;
+    bottom: 175px;
+    right: 0px;
+    animation: circleAppear 1.5s ease-out 1.2s forwards;
+}
+
+.particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleFloat 3s infinite;
+    box-shadow: 
+        0 0 4px 2px rgba(3, 218, 198, 0.8),
+        0 0 8px 4px rgba(3, 218, 198, 0.4);
+}
+
+@keyframes textReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes subtextReveal {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes lineExpand {
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes circleAppear {
+    to {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes particleFloat {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-20px) translateX(10px);
+        opacity: 0.6;
+    }
+} 

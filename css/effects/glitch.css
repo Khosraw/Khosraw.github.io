@@ -1,0 +1,59 @@
+/* Glitch effect styles */
+.rotating-object.glitch-effect {
+    animation: rotate 20s infinite linear;
+}
+
+.rotating-object.glitch-effect .face {
+    animation: 
+        flicker 0.1s infinite,
+        glitch1 0.1s infinite;
+}
+
+.rotating-object.glitch-effect .face1 { animation: flicker 0.1s infinite, glitch1 0.1s infinite; }
+.rotating-object.glitch-effect .face2 { animation: flicker 0.1s infinite, glitch2 0.1s infinite; }
+.rotating-object.glitch-effect .face3 { animation: flicker 0.1s infinite, glitch3 0.1s infinite; }
+.rotating-object.glitch-effect .face4 { animation: flicker 0.1s infinite, glitch4 0.1s infinite; }
+.rotating-object.glitch-effect .face5 { animation: flicker 0.1s infinite, glitch5 0.1s infinite; }
+.rotating-object.glitch-effect .face6 { animation: flicker 0.1s infinite, glitch6 0.1s infinite; }
+
+@keyframes glitch1 {
+    0%, 100% { transform: rotateY(0deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateY(0deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateY(0deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateY(0deg) translateZ(250px) translate(-2px, 2px); }
+}
+
+@keyframes glitch2 {
+    0%, 100% { transform: rotateY(90deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateY(90deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateY(90deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateY(90deg) translateZ(250px) translate(-2px, 2px); }
+}
+
+@keyframes glitch3 {
+    0%, 100% { transform: rotateY(180deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateY(180deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateY(180deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateY(180deg) translateZ(250px) translate(-2px, 2px); }
+}
+
+@keyframes glitch4 {
+    0%, 100% { transform: rotateY(-90deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateY(-90deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateY(-90deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateY(-90deg) translateZ(250px) translate(-2px, 2px); }
+}
+
+@keyframes glitch5 {
+    0%, 100% { transform: rotateX(90deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateX(90deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateX(90deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateX(90deg) translateZ(250px) translate(-2px, 2px); }
+}
+
+@keyframes glitch6 {
+    0%, 100% { transform: rotateX(-90deg) translateZ(250px) translate(2px, 2px); }
+    25% { transform: rotateX(-90deg) translateZ(250px) translate(-2px, -2px); }
+    50% { transform: rotateX(-90deg) translateZ(250px) translate(2px, -2px); }
+    75% { transform: rotateX(-90deg) translateZ(250px) translate(-2px, 2px); }
+} 
