@@ -177,13 +177,18 @@ main {
 /* Mobile Styles */
 @media (max-width: 768px) {
     .hero {
-        padding: 0 20px;
+        padding: 0 30px;
         height: 45vh;
     }
     
     .about {
         height: 55vh;
-        padding: 1.5rem 20px;
+        padding: 1.5rem 30px;
+    }
+    
+    .about-content {
+        max-width: 500px;
+        padding: 0 10px;
     }
     
     .name-container {
@@ -191,15 +196,15 @@ main {
     }
     
     .social-links {
-        gap: 1.5rem;
+        gap: 1.2rem;
     }
     
     .social-links a {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
     
     .about-content p {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         line-height: 1.6;
     }
     
@@ -212,10 +217,17 @@ main {
 @media (max-width: 480px) {
     .hero {
         height: 40vh;
+        padding: 0 25px;
     }
     
     .about {
         height: 60vh;
+        padding: 1.5rem 25px;
+    }
+    
+    .about-content {
+        max-width: 420px;
+        padding: 0 5px;
     }
     
     .name-container {
@@ -224,6 +236,7 @@ main {
     
     .social-links {
         margin-top: 1rem;
+        gap: 1rem;
     }
     
     .social-links a {
@@ -231,7 +244,7 @@ main {
     }
     
     .about-content p {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         line-height: 1.5;
     }
 }
@@ -240,15 +253,25 @@ main {
 @media (max-height: 600px) and (orientation: landscape) {
     .hero {
         height: 40vh;
+        padding: 0 25px;
     }
     
     .about {
         height: 60vh;
-        padding: 1rem 20px;
+        padding: 1rem 25px;
+    }
+    
+    .about-content {
+        max-width: 450px;
+        padding: 0 10px;
     }
     
     .name-container {
         height: 50px;
+    }
+    
+    .social-links {
+        gap: 1rem;
     }
     
     .about-content p {
