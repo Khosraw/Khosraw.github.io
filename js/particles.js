@@ -1,167 +1,435 @@
-// Learning Particles Background
-(() => {
-    'use strict';
+// Particle System for Khosraw Azizi
+// Using birthdate (Dec 5, 2005) as seed for generative elements
 
-    class ParticleSystem {
-        constructor(canvas) {
-            this.canvas = canvas;
-            this.ctx = canvas.getContext('2d');
-            this.particles = [];
-            this.knowledgeDomains = [
-                'Philosophy', 'Technology', 'History', 'Politics', 
-                'Science', 'Business', 'Art', 'Mathematics',
-                'Psychology', 'Economics', 'Literature', 'Physics'
-            ];
-            this.resize();
-            this.init();
-        }
-
-        resize() {
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
-        }
-
-        init() {
-            // Spawn initial particles
-            for (let i = 0; i < 20; i++) {
-                this.spawnParticle();
-            }
-            
-            // Spawn new particles periodically (learning velocity)
-            setInterval(() => {
-                if (this.particles.length < 50) {
-                    this.spawnParticle();
-                }
-            }, 3000);
-
-            window.addEventListener('resize', () => this.resize());
-        }
-
-        spawnParticle() {
-            const particle = {
-                x: Math.random() * this.canvas.width,
-                y: this.canvas.height + 20,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: -Math.random() * 0.5 - 0.2,
-                size: Math.random() * 3 + 1,
-                opacity: 0,
-                targetOpacity: Math.random() * 0.5 + 0.1,
-                domain: this.knowledgeDomains[Math.floor(Math.random() * this.knowledgeDomains.length)],
-                connections: []
-            };
-            this.particles.push(particle);
-        }
-
-        update() {
-            // Update particles
-            for (let i = this.particles.length - 1; i >= 0; i--) {
-                const p = this.particles[i];
-                
-                // Movement
-                p.x += p.vx;
-                p.y += p.vy;
-                
-                // Fade in/out
-                if (p.opacity < p.targetOpacity) {
-                    p.opacity += 0.01;
-                }
-                
-                // Remove if off screen
-                if (p.y < -20 || p.x < -20 || p.x > this.canvas.width + 20) {
-                    this.particles.splice(i, 1);
-                    continue;
-                }
-                
-                // Add slight randomness to movement
-                p.vx += (Math.random() - 0.5) * 0.01;
-                p.vy += (Math.random() - 0.5) * 0.01;
-            }
-
-            // Form connections between nearby particles
-            this.updateConnections();
-        }
-
-        updateConnections() {
-            const maxDistance = 150;
-            
-            for (let i = 0; i < this.particles.length; i++) {
-                this.particles[i].connections = [];
-                
-                for (let j = i + 1; j < this.particles.length; j++) {
-                    const p1 = this.particles[i];
-                    const p2 = this.particles[j];
-                    const dx = p1.x - p2.x;
-                    const dy = p1.y - p2.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < maxDistance) {
-                        p1.connections.push({
-                            particle: p2,
-                            distance: distance,
-                            opacity: (1 - distance / maxDistance) * 0.2
-                        });
-                    }
-                }
-            }
-        }
-
-        draw() {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Draw connections
-            this.ctx.strokeStyle = getComputedStyle(document.documentElement)
-                .getPropertyValue('--accent');
-            
-            for (const p of this.particles) {
-                for (const connection of p.connections) {
-                    this.ctx.globalAlpha = connection.opacity * p.opacity;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(p.x, p.y);
-                    this.ctx.lineTo(connection.particle.x, connection.particle.y);
-                    this.ctx.stroke();
-                }
-            }
-            
-            // Draw particles
-            this.ctx.fillStyle = getComputedStyle(document.documentElement)
-                .getPropertyValue('--accent');
-            
-            for (const p of this.particles) {
-                this.ctx.globalAlpha = p.opacity;
-                this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Draw domain text occasionally
-                if (Math.random() < 0.001 && p.opacity > 0.3) {
-                    this.ctx.font = '10px Inter, sans-serif';
-                    this.ctx.fillText(p.domain, p.x + 10, p.y);
-                }
-            }
-            
-            this.ctx.globalAlpha = 1;
-        }
-
-        animate() {
-            this.update();
-            this.draw();
-            requestAnimationFrame(() => this.animate());
-        }
-    }
-
-    // Initialize particle system
-    function initParticles() {
-        const canvas = document.getElementById('particles-canvas');
-        if (!canvas) return;
+class ParticleSystem {
+    constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true, 
+            alpha: true 
+        });
         
-        const system = new ParticleSystem(canvas);
-        system.animate();
+        this.particles = [];
+        this.particleGeometry = null;
+        this.particleMaterial = null;
+        this.particleSystem = null;
+        
+        this.mouse = new THREE.Vector2(0, 0);
+        this.targetMouse = new THREE.Vector2(0, 0);
+        this.isMouseDown = false;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Configuration based on birthdate
+        const isSmallMobile = window.innerWidth < 480 || window.innerHeight < 600;
+        this.config = {
+            particlesPerLetter: isSmallMobile ? 50 : (this.isMobile ? 80 : 120),
+            explosionForce: 5,
+            attractionForce: 0.05,
+            damping: 0.95,
+            mouseRadius: this.isMobile ? 150 : 100,
+            cycleTime: 19000, // 19 seconds
+            birthSeed: 1205 // Dec 5
+        };
+        
+        this.text = "KHOSRAW AZIZI";
+        this.textPositions = [];
+        this.isFormed = true;
+        this.lastExplosion = 0;
+        
+        this.init();
     }
+    
+    init() {
+        // Setup renderer
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('particle-canvas').appendChild(this.renderer.domElement);
+        
+        // Setup camera
+        this.camera.position.z = this.isMobile ? 70 : 50;
+        this.camera.position.y = this.isMobile ? 8 : 5; // Adjust for mobile viewport
+        
+        // Create particles
+        this.createTextParticles();
+        
+        // Setup lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(ambientLight);
+        
+        // Add star field background
+        this.createStarField();
+        
+        // Event listeners
+        this.setupEventListeners();
+        
+        // Start animation
+        this.animate();
+        
+        // Particles are ready - no HTML name to show
+    }
+    
+    createTextParticles() {
+        // Create canvas for text rendering
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const fontSize = this.isMobile ? 50 : 100;
+        
+        canvas.width = 1024;
+        canvas.height = 256;
+        
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.font = `${fontSize}px Inter`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.text, canvas.width / 2, canvas.height / 2);
+        
+        // Get text data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        // Extract text positions
+        for (let y = 0; y < canvas.height; y += 4) {
+            for (let x = 0; x < canvas.width; x += 4) {
+                const index = (y * canvas.width + x) * 4;
+                if (data[index] > 128) {
+                    this.textPositions.push({
+                        x: (x - canvas.width / 2) * 0.1,
+                        y: -(y - canvas.height / 2) * 0.1,
+                        z: 0
+                    });
+                }
+            }
+        }
+        
+        // Create geometry
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(this.config.particlesPerLetter * this.text.length * 3);
+        const colors = new Float32Array(this.config.particlesPerLetter * this.text.length * 3);
+        const sizes = new Float32Array(this.config.particlesPerLetter * this.text.length);
+        
+        // Initialize particles
+        for (let i = 0; i < this.config.particlesPerLetter * this.text.length; i++) {
+            const i3 = i * 3;
+            const targetIndex = i % this.textPositions.length;
+            const target = this.textPositions[targetIndex];
+            
+            // Use birthdate seed for initial positions
+            const angle = (i + this.config.birthSeed) * 0.1;
+            const radius = Math.random() * 50;
+            
+            positions[i3] = target.x + Math.cos(angle) * radius * 0.1;
+            positions[i3 + 1] = target.y + Math.sin(angle) * radius * 0.1;
+            positions[i3 + 2] = target.z + (Math.random() - 0.5) * 2;
+            
+            // Color gradient (white to amber)
+            const t = i / (this.config.particlesPerLetter * this.text.length);
+            colors[i3] = 1;
+            colors[i3 + 1] = 1 - t * 0.3;
+            colors[i3 + 2] = 1 - t * 0.5;
+            
+            sizes[i] = Math.random() * 2 + 1;
+            
+            // Store particle data
+            this.particles.push({
+                x: positions[i3],
+                y: positions[i3 + 1],
+                z: positions[i3 + 2],
+                targetX: target.x,
+                targetY: target.y,
+                targetZ: target.z,
+                vx: 0,
+                vy: 0,
+                vz: 0,
+                originalSize: sizes[i]
+            });
+        }
+        
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        
+        // Create material with custom shader
+        this.particleMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 }
+            },
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                varying vec3 vColor;
+                varying float vSize;
+                
+                void main() {
+                    vColor = color;
+                    vSize = size;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                varying float vSize;
+                
+                void main() {
+                    float r = distance(gl_PointCoord, vec2(0.5, 0.5));
+                    if (r > 0.5) discard;
+                    
+                    float opacity = 1.0 - smoothstep(0.0, 0.5, r);
+                    gl_FragColor = vec4(vColor, opacity);
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        
+        this.particleSystem = new THREE.Points(geometry, this.particleMaterial);
+        this.scene.add(this.particleSystem);
+        
+        this.particleGeometry = geometry;
+    }
+    
+    createStarField() {
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 1000;
+        const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3);
+        
+        for (let i = 0; i < starCount * 3; i += 3) {
+            // Random positions in a sphere
+            const radius = 200 + Math.random() * 300;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(Math.random() * 2 - 1);
+            
+            positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i + 2] = radius * Math.cos(phi);
+            
+            // Subtle white color with slight variations
+            const brightness = 0.3 + Math.random() * 0.2;
+            colors[i] = brightness;
+            colors[i + 1] = brightness;
+            colors[i + 2] = brightness;
+        }
+        
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const starsMaterial = new THREE.PointsMaterial({
+            size: 0.5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        this.scene.add(stars);
+    }
+    
+    setupEventListeners() {
+        // Mouse/Touch events
+        if (this.isMobile) {
+            window.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+            window.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+            window.addEventListener('touchend', () => this.onTouchEnd(), { passive: false });
+            
+            // Device orientation for mobile
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', (e) => this.onDeviceOrientation(e));
+            }
+        } else {
+            window.addEventListener('mousemove', (e) => this.onMouseMove(e));
+            window.addEventListener('mousedown', () => this.onMouseDown());
+            window.addEventListener('mouseup', () => this.onMouseUp());
+            window.addEventListener('dblclick', () => this.explode());
+        }
+        
+        window.addEventListener('resize', () => this.onResize());
+    }
+    
+    onMouseMove(event) {
+        this.targetMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.targetMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+    
+    onTouchStart(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        this.targetMouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        this.targetMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        this.isMouseDown = true;
+        
+        // Double tap detection
+        const now = Date.now();
+        if (now - this.lastExplosion < 300) {
+            this.explode();
+        }
+        this.lastExplosion = now;
+    }
+    
+    onTouchMove(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        this.targetMouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        this.targetMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+    }
+    
+    onTouchEnd() {
+        this.isMouseDown = false;
+    }
+    
+    onDeviceOrientation(event) {
+        if (event.beta && event.gamma) {
+            const x = event.gamma / 90;
+            const y = event.beta / 180;
+            this.targetMouse.x = x * 0.5;
+            this.targetMouse.y = y * 0.5;
+        }
+    }
+    
+    onMouseDown() {
+        this.isMouseDown = true;
+    }
+    
+    onMouseUp() {
+        this.isMouseDown = false;
+    }
+    
+    onResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    explode() {
+        this.isFormed = false;
+        this.particles.forEach(particle => {
+            const force = this.config.explosionForce;
+            particle.vx = (Math.random() - 0.5) * force;
+            particle.vy = (Math.random() - 0.5) * force;
+            particle.vz = (Math.random() - 0.5) * force;
+        });
+        
+        setTimeout(() => {
+            this.isFormed = true;
+        }, 1000);
+    }
+    
+    updateParticles() {
+        const positions = this.particleGeometry.attributes.position.array;
+        const sizes = this.particleGeometry.attributes.size.array;
+        
+        // Smooth mouse movement
+        this.mouse.x += (this.targetMouse.x - this.mouse.x) * 0.1;
+        this.mouse.y += (this.targetMouse.y - this.mouse.y) * 0.1;
+        
+        // Convert mouse to world coordinates
+        const vector = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5);
+        vector.unproject(this.camera);
+        const dir = vector.sub(this.camera.position).normalize();
+        const distance = -this.camera.position.z / dir.z;
+        const mousePos = this.camera.position.clone().add(dir.multiplyScalar(distance));
+        
+        for (let i = 0; i < this.particles.length; i++) {
+            const particle = this.particles[i];
+            const i3 = i * 3;
+            
+            // Calculate forces
+            let fx = 0, fy = 0, fz = 0;
+            
+            // Attraction to target position
+            if (this.isFormed) {
+                fx += (particle.targetX - particle.x) * this.config.attractionForce;
+                fy += (particle.targetY - particle.y) * this.config.attractionForce;
+                fz += (particle.targetZ - particle.z) * this.config.attractionForce;
+            }
+            
+            // Mouse interaction
+            const dx = mousePos.x - particle.x;
+            const dy = mousePos.y - particle.y;
+            const dz = -particle.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            
+            if (distance < this.config.mouseRadius) {
+                const force = (1 - distance / this.config.mouseRadius) * 0.5;
+                if (this.isMouseDown) {
+                    // Attract
+                    fx += dx * force * 0.1;
+                    fy += dy * force * 0.1;
+                    fz += dz * force * 0.1;
+                } else {
+                    // Repel
+                    fx -= dx * force * 0.05;
+                    fy -= dy * force * 0.05;
+                    fz -= dz * force * 0.05;
+                }
+                
+                // Size effect
+                sizes[i] = particle.originalSize * (1 + force * 0.5);
+            } else {
+                sizes[i] = particle.originalSize;
+            }
+            
+            // Update velocity
+            particle.vx += fx;
+            particle.vy += fy;
+            particle.vz += fz;
+            
+            // Apply damping
+            particle.vx *= this.config.damping;
+            particle.vy *= this.config.damping;
+            particle.vz *= this.config.damping;
+            
+            // Update position
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.z += particle.vz;
+            
+            // Update geometry
+            positions[i3] = particle.x;
+            positions[i3 + 1] = particle.y;
+            positions[i3 + 2] = particle.z;
+        }
+        
+        this.particleGeometry.attributes.position.needsUpdate = true;
+        this.particleGeometry.attributes.size.needsUpdate = true;
+    }
+    
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        
+        this.updateParticles();
+        
+        // Update time uniform
+        const time = this.particleMaterial.uniforms.time.value;
+        this.particleMaterial.uniforms.time.value += 0.01;
+        
+        // No rotation - keeping the name static
+        // this.particleSystem.rotation.y += 0.0005;
+        
+        // Automatic subtle wave animation every 19 seconds (age reference)
+        const cycleProgress = (time * 10) % this.config.cycleTime;
+        if (cycleProgress < 100) {
+            const waveProgress = cycleProgress / 100;
+            this.particles.forEach((particle, i) => {
+                const delay = i / this.particles.length;
+                const waveForce = Math.sin((waveProgress + delay) * Math.PI) * 0.5;
+                particle.vx += Math.sin(i * 0.1) * waveForce * 0.05;
+                particle.vy += Math.cos(i * 0.1) * waveForce * 0.05;
+            });
+        }
+        
+        this.renderer.render(this.scene, this.camera);
+    }
+}
 
-    // Start when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initParticles);
-    } else {
-        initParticles();
-    }
-})(); 
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new ParticleSystem();
+}); 

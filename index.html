@@ -2,116 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Khosraw Azizi</title>
     
-    <!-- Meta Tags -->
-    <meta name="description" content="Life-long knower from Afghanistan, tackling the world's most challenging problems. Co-founder of Pointer.">
+    <meta name="description" content="19-year-old from Afghanistan. Co-founder of Pointer. Life-long learner tackling the world's most challenging problems.">
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="Khosraw Azizi">
-    <meta property="og:description" content="Life-long knower from Afghanistan, tackling the world's most challenging problems.">
+    <meta property="og:description" content="19-year-old from Afghanistan. Co-founder of Pointer. Life-long learner tackling the world's most challenging problems.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://khosraw.com">
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Journey Line Animation -->
-    <svg id="journey-line" class="journey-line" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M 20,50 Q 50,20 80,50" stroke="#00818A" stroke-width="0.5" fill="none" opacity="0.3"/>
-    </svg>
+    <div id="particle-canvas"></div>
     
-    <!-- Knowledge Map Container -->
-    <div id="knowledge-map" class="knowledge-map">
-        <canvas id="knowledge-canvas"></canvas>
-        <div class="knowledge-tooltip"></div>
-    </div>
-    
-    <main class="container">
-        <!-- Hero Section -->
+    <main>
         <section class="hero">
-            <h1 class="name">Khosraw Azizi</h1>
-            <div class="journey-counter">
-                <span class="counter-label">Days on this journey: </span>
-                <span id="days-counter" class="counter-value">0</span>
+            <div class="name-container">
+                <!-- Spacer for particle name - particles render on full-screen canvas -->
             </div>
         </section>
         
-        <!-- Origin Story -->
-        <section class="origin">
-            <p class="origin-text">
-                From <span class="highlight">Afghanistan</span> to the world
-            </p>
-            <div class="distance-traveled">
-                <span id="miles-traveled">0</span> miles of impact
+        <section class="about">
+            <div class="about-content">
+                <p>
+                    From Kabul, Afghanistan. Co-founder of <a href="https://pointer.so" target="_blank" class="pointer-link">Pointer</a>. Life-long learner. Want to fix the world. Reach out at <a href="mailto:khosraw@pointer.so" class="email">khosraw<span class="at">@</span>pointer<span class="dot">.</span>so</a>.
+                </p>
+                <div class="social-links">
+                    <a href="https://github.com/Khosraw" target="_blank" aria-label="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://linkedin.com/in/khosraw-azizi" target="_blank" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="https://x.com/khozraw" target="_blank" aria-label="X (Twitter)">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
             </div>
         </section>
-        
-        <!-- Current Focus -->
-        <section class="current">
-            <p class="building">
-                Building <a href="https://pointer.so" target="_blank" class="pointer-link">Pointer</a> 
-                <span class="role">as co-founder</span>
-            </p>
-            <p class="mission">Making using software more productive, one interaction at a time</p>
-        </section>
-        
-        <!-- Philosophy -->
-        <section class="philosophy">
-            <p class="learner">Life-long knower</p>
-        </section>
-        
-        <!-- Connect -->
-        <section class="connect">
-            <div class="social-links">
-                <a href="https://github.com/Khosraw" target="_blank" class="social-link github" data-tooltip="GitHub">
-                    <i class="fab fa-github"></i>
-                    <span class="link-metric" id="github-metric"></span>
-                </a>
-                <a href="https://linkedin.com/in/khosraw-azizi" target="_blank" class="social-link linkedin" data-tooltip="LinkedIn">
-                    <i class="fab fa-linkedin"></i>
-                    <span class="link-metric" id="linkedin-metric"></span>
-                </a>
-                <a href="https://x.com/khozraw" target="_blank" class="social-link twitter" data-tooltip="X">
-                    <i class="fab fa-twitter"></i>
-                    <span class="link-metric" id="twitter-metric"></span>
-                </a>
-            </div>
-            
-            <p class="email">
-                <a href="mailto:khosraw@pointer.so">khosraw [at] pointer [dot] so</a>
-            </p>
-        </section>
-        
-        <!-- Time Bridge -->
-        <section class="time-bridge">
-            <div class="time-zone" id="afghanistan-time">
-                <span class="time-label">Afghanistan</span>
-                <span class="time-value">00:00</span>
-            </div>
-            <div class="time-zone" id="local-time">
-                <span class="time-label">Local</span>
-                <span class="time-value">00:00</span>
-            </div>
-        </section>
-        
-        <!-- Knowledge Map Toggle -->
-        <button class="knowledge-toggle" id="knowledge-toggle">
-            <i class="fas fa-brain"></i>
-            <span>Explore Knowledge Map</span>
-        </button>
     </main>
-    
-    <!-- Learning Particles Background -->
-    <canvas id="particles-canvas" class="particles-canvas"></canvas>
-    
-    <script src="js/main.js"></script>
-    <script src="js/knowledge-map.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/particles.js"></script>
 </body>
 </html>
