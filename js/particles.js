@@ -196,22 +196,20 @@ class ParticleSystem {
     
     createStarField() {
         const starsGeometry = new THREE.BufferGeometry();
-        const starCount = 1000;
+        const starCount = 2500;
         const positions = new Float32Array(starCount * 3);
         const colors = new Float32Array(starCount * 3);
         
         for (let i = 0; i < starCount * 3; i += 3) {
-            // Random positions in a sphere
-            const radius = 200 + Math.random() * 300;
+            const radius = 100 + Math.random() * 400;
             const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(Math.random() * 2 - 1);
+            const phi = Math.acos((Math.random() * 2) - 1);
             
-            positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i]     = radius * Math.sin(phi) * Math.cos(theta);
             positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
             positions[i + 2] = radius * Math.cos(phi);
             
-            // Subtle white color with slight variations
-            const brightness = 0.3 + Math.random() * 0.2;
+            const brightness = 0.5 + Math.random() * 0.5;
             colors[i] = brightness;
             colors[i + 1] = brightness;
             colors[i + 2] = brightness;
@@ -224,12 +222,13 @@ class ParticleSystem {
             size: 0.5,
             vertexColors: true,
             transparent: true,
-            opacity: 0.6,
-            blending: THREE.AdditiveBlending
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
         });
         
-        const stars = new THREE.Points(starsGeometry, starsMaterial);
-        this.scene.add(stars);
+        this.starField = new THREE.Points(starsGeometry, starsMaterial);
+        this.scene.add(this.starField);
     }
     
     setupEventListeners() {
@@ -412,6 +411,12 @@ class ParticleSystem {
         
         // No rotation - keeping the name static
         // this.particleSystem.rotation.y += 0.0005;
+        
+        // Slowly rotate starfield
+        if (this.starField) {
+            this.starField.rotation.y += 0.0001;
+            this.starField.rotation.x += 0.00005;
+        }
         
         // Automatic subtle wave animation every 19 seconds (age reference)
         const cycleProgress = (time * 10) % this.config.cycleTime;
