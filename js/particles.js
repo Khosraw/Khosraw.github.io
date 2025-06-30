@@ -15,6 +15,9 @@ class ParticleSystem {
         this.particleMaterial = null;
         this.particleSystem = null;
         
+        this.starData = [];
+        this.starField = null;
+        
         this.mouse = new THREE.Vector2(0, 0);
         this.targetMouse = new THREE.Vector2(0, 0);
         this.isMouseDown = false;
@@ -196,27 +199,40 @@ class ParticleSystem {
     
     createStarField() {
         const starsGeometry = new THREE.BufferGeometry();
-        const starCount = 2500;
+        const starCount = 2000;
         const positions = new Float32Array(starCount * 3);
         const colors = new Float32Array(starCount * 3);
+        const sizes = new Float32Array(starCount);
         
-        for (let i = 0; i < starCount * 3; i += 3) {
+        for (let i = 0; i < starCount; i++) {
+            const i3 = i * 3;
             const radius = 100 + Math.random() * 400;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos((Math.random() * 2) - 1);
             
-            positions[i]     = radius * Math.sin(phi) * Math.cos(theta);
-            positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            positions[i + 2] = radius * Math.cos(phi);
+            positions[i3]     = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i3 + 2] = radius * Math.cos(phi);
             
-            const brightness = 0.5 + Math.random() * 0.5;
-            colors[i] = brightness;
-            colors[i + 1] = brightness;
-            colors[i + 2] = brightness;
+            const brightness = 0.3 + Math.random() * 0.4;
+            const size = 0.4 + Math.random() * 0.4;
+
+            colors[i3] = brightness;
+            colors[i3 + 1] = brightness;
+            colors[i3 + 2] = brightness;
+            sizes[i] = size;
+
+            this.starData.push({
+                originalBrightness: brightness,
+                originalSize: size,
+                twinkleSpeed: Math.random() * 0.01 + 0.005,
+                twinklePhase: Math.random() * Math.PI * 2
+            });
         }
         
         starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
         
         const starsMaterial = new THREE.PointsMaterial({
             size: 0.5,
@@ -320,6 +336,51 @@ class ParticleSystem {
         }, 1000);
     }
     
+    updateStarField() {
+        // Trigger new supernovas
+        if (Math.random() < 0.0005) { // Small chance each frame
+            const starIndex = Math.floor(Math.random() * this.starData.length);
+            if (!this.starData[starIndex].supernova) {
+                this.starData[starIndex].supernova = { progress: 0, duration: 120 }; // 2 seconds
+            }
+        }
+
+        const colors = this.starField.geometry.attributes.color.array;
+        const sizes = this.starField.geometry.attributes.size.array;
+
+        for (let i = 0; i < this.starData.length; i++) {
+            const star = this.starData[i];
+            let brightness = star.originalBrightness;
+            let size = star.originalSize;
+
+            // Twinkling
+            star.twinklePhase += star.twinkleSpeed;
+            const twinkleValue = (Math.sin(star.twinklePhase) + 1) / 2 * 0.5;
+            brightness += twinkleValue;
+
+            // Supernova
+            if (star.supernova) {
+                star.supernova.progress++;
+                const progress = star.supernova.progress / star.supernova.duration;
+                const peak = Math.sin(progress * Math.PI); // 0 -> 1 -> 0 curve
+                brightness += peak * 50; // Flare up
+                size += peak * 15.0;
+
+                if (star.supernova.progress >= star.supernova.duration) {
+                    star.supernova = null; // End of supernova
+                }
+            }
+            
+            const i3 = i * 3;
+            colors[i3] = brightness;
+            colors[i3 + 1] = brightness;
+            colors[i3 + 2] = brightness;
+            sizes[i] = size;
+        }
+        this.starField.geometry.attributes.color.needsUpdate = true;
+        this.starField.geometry.attributes.size.needsUpdate = true;
+    }
+    
     updateParticles() {
         const positions = this.particleGeometry.attributes.position.array;
         const sizes = this.particleGeometry.attributes.size.array;
@@ -404,13 +465,11 @@ class ParticleSystem {
         requestAnimationFrame(() => this.animate());
         
         this.updateParticles();
+        this.updateStarField();
         
         // Update time uniform
         const time = this.particleMaterial.uniforms.time.value;
         this.particleMaterial.uniforms.time.value += 0.01;
-        
-        // No rotation - keeping the name static
-        // this.particleSystem.rotation.y += 0.0005;
         
         // Slowly rotate starfield
         if (this.starField) {
