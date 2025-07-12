@@ -51,7 +51,7 @@ class ParticleSystem {
         
         // Setup camera
         this.camera.position.z = this.isMobile ? 70 : 50;
-        this.camera.position.y = this.isMobile ? 8 : 5; // Adjust for mobile viewport
+        this.camera.position.y = this.isMobile ? 0 : 5; // Lower position on mobile to center name
         
         // Create particles
         this.createTextParticles();
@@ -120,13 +120,10 @@ class ParticleSystem {
             const targetIndex = i % this.textPositions.length;
             const target = this.textPositions[targetIndex];
             
-            // Use birthdate seed for initial positions
-            const angle = (i + this.config.birthSeed) * 0.1;
-            const radius = Math.random() * 50;
-            
-            positions[i3] = target.x + Math.cos(angle) * radius * 0.1;
-            positions[i3 + 1] = target.y + Math.sin(angle) * radius * 0.1;
-            positions[i3 + 2] = target.z + (Math.random() - 0.5) * 2;
+            // Start particles exactly at their target positions
+            positions[i3] = target.x;
+            positions[i3 + 1] = target.y;
+            positions[i3 + 2] = target.z;
             
             // Color gradient (white to amber)
             const t = i / (this.config.particlesPerLetter * this.text.length);
@@ -136,11 +133,11 @@ class ParticleSystem {
             
             sizes[i] = Math.random() * 2 + 1;
             
-            // Store particle data
+            // Store particle data - starting at target position
             this.particles.push({
-                x: positions[i3],
-                y: positions[i3 + 1],
-                z: positions[i3 + 2],
+                x: target.x,
+                y: target.y,
+                z: target.z,
                 targetX: target.x,
                 targetY: target.y,
                 targetZ: target.z,
@@ -158,7 +155,7 @@ class ParticleSystem {
         // Create material with custom shader
         this.particleMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                time: { value: 0 }
+                time: { value: 20 } // Start at 20 to skip initial wave animation
             },
             vertexShader: `
                 attribute float size;
