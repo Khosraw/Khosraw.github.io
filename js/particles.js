@@ -36,6 +36,8 @@ class ParticleSystem {
         };
         
         this.text = "KHOSRAW AZIZI";
+        this.farsiText = "خسرو عزیزی";
+        this.isEnglish = true;
         this.textPositions = [];
         this.isFormed = true;
         this.lastExplosion = 0;
@@ -65,6 +67,12 @@ class ParticleSystem {
         
         // Event listeners
         this.setupEventListeners();
+
+        // Add right-click listener for language switching
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.switchLanguage();
+        });
         
         // Start animation
         this.animate();
@@ -327,10 +335,28 @@ class ParticleSystem {
             particle.vy = (Math.random() - 0.5) * force;
             particle.vz = (Math.random() - 0.5) * force;
         });
-        
+
         setTimeout(() => {
             this.isFormed = true;
         }, 1000);
+    }
+
+    switchLanguage() {
+        // Switch text
+        this.isEnglish = !this.isEnglish;
+        this.text = this.isEnglish ? "KHOSRAW AZIZI" : this.farsiText;
+
+        // Remove current particle system
+        if (this.particleSystem) {
+            this.scene.remove(this.particleSystem);
+        }
+
+        // Clear current data
+        this.particles = [];
+        this.textPositions = [];
+
+        // Recreate with new text
+        this.createTextParticles();
     }
     
     updateStarField() {
