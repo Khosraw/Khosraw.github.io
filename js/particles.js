@@ -17,6 +17,7 @@ class ParticleSystem {
         
         this.starData = [];
         this.starField = null;
+        this.connectionLines = null;
         
         this.mouse = new THREE.Vector2(0, 0);
         this.targetMouse = new THREE.Vector2(0, 0);
@@ -64,6 +65,9 @@ class ParticleSystem {
         
         // Add star field background
         this.createStarField();
+        
+        // Create connection lines
+        this.createConnectionLines();
         
         // Event listeners
         this.setupEventListeners();
@@ -252,6 +256,124 @@ class ParticleSystem {
         this.scene.add(this.starField);
     }
     
+    createConnectionLines() {
+        const maxConnections = this.isMobile ? 150 : 300;
+        const linePositions = new Float32Array(maxConnections * 2 * 3);
+        const lineColors = new Float32Array(maxConnections * 2 * 3);
+        
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        lineGeometry.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
+        
+        const lineMaterial = new THREE.LineBasicMaterial({
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.25,
+            blending: THREE.AdditiveBlending
+        });
+        
+        this.connectionLines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        this.scene.add(this.connectionLines);
+    }
+    
+    updateConnectionLines() {
+        if (!this.connectionLines) return;
+        
+        const positions = this.connectionLines.geometry.attributes.position.array;
+        const colors = this.connectionLines.geometry.attributes.color.array;
+        const maxDistance = this.isMobile ? 8 : 10;
+        let connectionIndex = 0;
+        const maxConnections = positions.length / 6;
+        const maxConnectionsPerParticle = 3; // Limit connections per particle for balance
+        
+        // Track connections per particle to ensure even distribution
+        const connectionCount = new Array(this.particles.length).fill(0);
+        
+        // Convert mouse to world coordinates
+        const vector = new THREE.Vector3(this.mouse.x, this.mouse.y, 0.5);
+        vector.unproject(this.camera);
+        const dir = vector.sub(this.camera.position).normalize();
+        const distance = -this.camera.position.z / dir.z;
+        const mousePos = this.camera.position.clone().add(dir.multiplyScalar(distance));
+        
+        // Create connections more evenly distributed
+        for (let i = 0; i < this.particles.length && connectionIndex < maxConnections; i++) {
+            const p1 = this.particles[i];
+            
+            // Skip if this particle already has max connections
+            if (connectionCount[i] >= maxConnectionsPerParticle) continue;
+            
+            // Calculate distance to mouse for interactive effect
+            const distToMouse = Math.sqrt(
+                Math.pow(p1.x - mousePos.x, 2) + 
+                Math.pow(p1.y - mousePos.y, 2) + 
+                Math.pow(p1.z, 2)
+            );
+            
+            // Make connections appear across all particles, with slight boost near mouse
+            const mouseInfluence = distToMouse < this.config.mouseRadius * 2 ? 1.0 : 0.4;
+            
+            // Random chance to create connection (ensures even distribution)
+            if (Math.random() > mouseInfluence * 0.3) continue;
+            
+            for (let j = i + 1; j < this.particles.length && connectionIndex < maxConnections; j++) {
+                // Skip if second particle already has max connections
+                if (connectionCount[j] >= maxConnectionsPerParticle) continue;
+                
+                const p2 = this.particles[j];
+                const dx = p1.x - p2.x;
+                const dy = p1.y - p2.y;
+                const dz = p1.z - p2.z;
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                
+                if (dist < maxDistance) {
+                    const idx = connectionIndex * 6;
+                    
+                    // Positions
+                    positions[idx] = p1.x;
+                    positions[idx + 1] = p1.y;
+                    positions[idx + 2] = p1.z;
+                    positions[idx + 3] = p2.x;
+                    positions[idx + 4] = p2.y;
+                    positions[idx + 5] = p2.z;
+                    
+                    // Strength based on distance: closer = stronger (brighter), further = weaker (dimmer)
+                    const strength = 1 - (dist / maxDistance); // 1 at distance 0, 0 at maxDistance
+                    const intensity = 0.3 + (strength * 0.7); // Range from 0.3 (far) to 1.0 (close)
+                    
+                    // Colors with distance-based intensity (gold color that dims with distance)
+                    // Closer connections are bright gold, further ones are dimmer but still visible
+                    colors[idx] = 0.83 * intensity; // R
+                    colors[idx + 1] = 0.69 * intensity; // G
+                    colors[idx + 2] = 0.22 * intensity; // B
+                    colors[idx + 3] = colors[idx];
+                    colors[idx + 4] = colors[idx + 1];
+                    colors[idx + 5] = colors[idx + 2];
+                    
+                    connectionIndex++;
+                    connectionCount[i]++;
+                    connectionCount[j]++;
+                    
+                    // Only create one connection per iteration to spread them out
+                    break;
+                }
+            }
+        }
+        
+        // Clear unused connections
+        for (let i = connectionIndex * 6; i < positions.length; i += 6) {
+            positions[i] = 0;
+            positions[i + 1] = 0;
+            positions[i + 2] = 0;
+            positions[i + 3] = 0;
+            positions[i + 4] = 0;
+            positions[i + 5] = 0;
+        }
+        
+        this.connectionLines.geometry.attributes.position.needsUpdate = true;
+        this.connectionLines.geometry.attributes.color.needsUpdate = true;
+    }
+    
     setupEventListeners() {
         // Mouse/Touch events
         if (this.isMobile) {
@@ -406,6 +528,7 @@ class ParticleSystem {
     
     updateParticles() {
         const positions = this.particleGeometry.attributes.position.array;
+        const colors = this.particleGeometry.attributes.color.array;
         const sizes = this.particleGeometry.attributes.size.array;
         
         // Smooth mouse movement
@@ -453,10 +576,23 @@ class ParticleSystem {
                     fz -= dz * force * 0.05;
                 }
                 
-                // Size effect
-                sizes[i] = particle.originalSize * (1 + force * 0.5);
+                // Size and color effect
+                sizes[i] = particle.originalSize * (1 + force * 0.8);
+                
+                // Enhanced color on hover - shift towards vibrant gold/yellow
+                const ci3 = i * 3;
+                colors[ci3] = 1; // R stays at max
+                colors[ci3 + 1] = 0.85 + force * 0.15; // G slightly enhanced
+                colors[ci3 + 2] = 0.2 + force * 0.5; // B increases for brighter gold
             } else {
                 sizes[i] = particle.originalSize;
+                
+                // Reset to original gradient color
+                const t = i / this.particles.length;
+                const ci3 = i * 3;
+                colors[ci3] = 1;
+                colors[ci3 + 1] = 1 - t * 0.3;
+                colors[ci3 + 2] = 1 - t * 0.5;
             }
             
             // Update velocity
@@ -481,6 +617,7 @@ class ParticleSystem {
         }
         
         this.particleGeometry.attributes.position.needsUpdate = true;
+        this.particleGeometry.attributes.color.needsUpdate = true;
         this.particleGeometry.attributes.size.needsUpdate = true;
     }
     
@@ -488,6 +625,7 @@ class ParticleSystem {
         requestAnimationFrame(() => this.animate());
         
         this.updateParticles();
+        this.updateConnectionLines();
         this.updateStarField();
         
         // Update time uniform
