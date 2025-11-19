@@ -43,6 +43,19 @@ body::before {
     z-index: 0;
 }
 
+/* Vignette & Noise Overlay */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
 @keyframes gradientShift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -152,17 +165,37 @@ main {
     animation: fadeInUp 1s ease 0.5s both;
 }
 
+.profile-pic {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    border: 2px solid var(--accent-dim);
+    box-shadow: 0 0 20px var(--accent-dim);
+    object-fit: cover;
+    transition: all 0.5s ease;
+    pointer-events: all;
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
 .about-content p {
     font-family: 'Crimson Text', Georgia, 'Times New Roman', serif;
     font-size: clamp(1.15rem, 2vw, 1.35rem);
-    line-height: 1.7;
+    line-height: 1.8; /* Increased from 1.7 */
     font-weight: 400;
     color: var(--primary);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em; /* Increased from 0.01em */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Added subtle shadow for readability */
 }
 
 .pointer-link {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 50%, var(--accent) 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -177,6 +210,7 @@ main {
 
 .pointer-link:hover {
     filter: drop-shadow(0 0 8px var(--accent-glow));
+    background-position: right center;
 }
 
 .pointer-link::after {
@@ -219,8 +253,6 @@ main {
 .email:hover .dot {
     color: var(--accent);
 }
-
-/* Particle glow effect removed for cleaner look */
 
 /* Animations */
 @keyframes fadeIn {
@@ -313,6 +345,12 @@ main {
         font-size: 0.94rem;
         line-height: 1.5;
     }
+    
+    .profile-pic {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 1rem;
+    }
 }
 
 /* Landscape orientation on mobile */
@@ -343,6 +381,12 @@ main {
     .about-content p {
         font-size: 0.9rem;
         line-height: 1.4;
+    }
+    
+    .profile-pic {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0.8rem;
     }
 }
 
@@ -416,4 +460,4 @@ html {
     .cursor-dot, .cursor-outline, .click-animation {
         display: none;
     }
-} 
+}

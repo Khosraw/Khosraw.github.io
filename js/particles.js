@@ -19,6 +19,10 @@ class ParticleSystem {
         this.starField = null;
         this.connectionLines = null;
         
+        // Shooting stars
+        this.shootingStars = [];
+        this.shootingStarTime = 0;
+        
         this.mouse = new THREE.Vector2(0, 0);
         this.targetMouse = new THREE.Vector2(0, 0);
         this.isMouseDown = false;
@@ -80,8 +84,6 @@ class ParticleSystem {
         
         // Start animation
         this.animate();
-        
-        // Particles are ready - no HTML name to show
     }
     
     createTextParticles() {
@@ -256,6 +258,126 @@ class ParticleSystem {
         this.scene.add(this.starField);
     }
     
+    createShootingStar() {
+        const geometry = new THREE.BufferGeometry();
+        const points = [];
+        
+        // Start position (random around the top/sides)
+        const r = 150; // Radius from center
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+        
+        const startX = r * Math.sin(phi) * Math.cos(theta);
+        const startY = r * Math.sin(phi) * Math.sin(theta);
+        const startZ = r * Math.cos(phi) - 50; // Bias towards background
+        
+        const startPos = new THREE.Vector3(startX, startY, startZ);
+        
+        points.push(startPos.clone());
+        points.push(startPos.clone());
+        
+        geometry.setFromPoints(points);
+        
+        const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const star = new THREE.Line(geometry, material);
+        this.scene.add(star);
+        
+        // Velocity - shoot across the view
+        // Pick a target somewhat near center but scattered
+        const targetX = (Math.random() - 0.5) * 100;
+        const targetY = (Math.random() - 0.5) * 100;
+        const targetZ = (Math.random() - 0.5) * 50;
+        
+        const direction = new THREE.Vector3(targetX, targetY, targetZ).sub(startPos).normalize();
+        const speed = 2 + Math.random() * 3;
+        const velocity = direction.multiplyScalar(speed);
+        
+        this.shootingStars.push({
+            mesh: star,
+            velocity: velocity,
+            life: 0,
+            maxLife: 40 + Math.random() * 20,
+            head: startPos.clone(),
+            tail: startPos.clone()
+        });
+    }
+
+    updateShootingStars() {
+        // Spawn logic
+        this.shootingStarTime++;
+        // Spawn chance increases if mouse is down for "warp" effect, otherwise random occasional
+        const spawnChance = this.isMouseDown ? 0.2 : 0.01;
+        
+        if (this.shootingStarTime > 10 && Math.random() < spawnChance) {
+            this.createShootingStar();
+            this.shootingStarTime = 0;
+        }
+        
+        // Update existing
+        for (let i = this.shootingStars.length - 1; i >= 0; i--) {
+            const star = this.shootingStars[i];
+            star.life++;
+            
+            // Move head
+            star.head.add(star.velocity);
+            
+            // Move tail - simple follow with delay simulated by distance
+            const tailLength = 15; // Max length
+            const speedMultiplier = star.velocity.length();
+            
+            // Tail gradually extends then follows
+            // We calculate tail position by subtracting velocity vector * length
+            const currentLength = Math.min(star.life * speedMultiplier, tailLength);
+            
+            // Better tail logic: Tail moves towards head but is constrained by length
+            // Simplest for shooting star: Tail is just Head - (Velocity * LengthFactor)
+            
+            // Length factor depends on life
+            // Fade in length -> sustain -> shrink
+            let lengthFactor = 0;
+            if (star.life < 10) lengthFactor = star.life / 10;
+            else if (star.life > star.maxLife - 10) lengthFactor = (star.maxLife - star.life) / 10;
+            else lengthFactor = 1;
+            
+            const effectiveTailVec = star.velocity.clone().normalize().multiplyScalar(tailLength * lengthFactor);
+            star.tail.copy(star.head).sub(effectiveTailVec);
+            
+            // Update geometry
+            const positions = star.mesh.geometry.attributes.position.array;
+            positions[0] = star.head.x;
+            positions[1] = star.head.y;
+            positions[2] = star.head.z;
+            
+            positions[3] = star.tail.x;
+            positions[4] = star.tail.y;
+            positions[5] = star.tail.z;
+            
+            star.mesh.geometry.attributes.position.needsUpdate = true;
+            
+            // Opacity lifecycle
+            if (star.life < 5) {
+                star.mesh.material.opacity = star.life / 5;
+            } else if (star.life > star.maxLife - 10) {
+                star.mesh.material.opacity = (star.maxLife - star.life) / 10;
+            } else {
+                star.mesh.material.opacity = 1;
+            }
+            
+            if (star.life >= star.maxLife) {
+                this.scene.remove(star.mesh);
+                star.mesh.geometry.dispose();
+                star.mesh.material.dispose();
+                this.shootingStars.splice(i, 1);
+            }
+        }
+    }
+
     createConnectionLines() {
         const maxConnections = this.isMobile ? 150 : 300;
         const linePositions = new Float32Array(maxConnections * 2 * 3);
@@ -627,6 +749,7 @@ class ParticleSystem {
         this.updateParticles();
         this.updateConnectionLines();
         this.updateStarField();
+        this.updateShootingStars(); // Update shooting stars
         
         // Update time uniform
         const time = this.particleMaterial.uniforms.time.value;
@@ -634,8 +757,15 @@ class ParticleSystem {
         
         // Slowly rotate starfield
         if (this.starField) {
-            this.starField.rotation.y += 0.0001;
-            this.starField.rotation.x += 0.00005;
+            const baseSpeed = 0.0001;
+            const warpSpeed = 0.01;
+            const targetSpeed = this.isMouseDown ? warpSpeed : baseSpeed;
+            
+            // Simple lerp for rotation speed could be added but let's just use target for responsiveness
+            // Or add a rotationSpeed property to class if we want smooth transition
+            
+            this.starField.rotation.y += this.isMouseDown ? 0.002 : 0.0001;
+            this.starField.rotation.x += this.isMouseDown ? 0.001 : 0.00005;
         }
         
         // Automatic subtle wave animation every 19 seconds (age reference)
@@ -657,4 +787,4 @@ class ParticleSystem {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new ParticleSystem();
-}); 
+});
