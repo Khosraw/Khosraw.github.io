@@ -90,9 +90,9 @@ body {
     color: var(--ink);
 }
 
-/* The 34rem measure is for reading, so it lives on the text blocks rather
-   than on main — otherwise it would constrain the display-size name and
-   `overflow: hidden` on the heading would clip it. */
+/* The 34rem measure exists for readable line length, so it belongs on the
+   text blocks. Putting it on main would also constrain the display-size
+   name, which is meant to run wider than the body copy. */
 main {
     width: 100%;
 }
@@ -150,7 +150,7 @@ h1 + .line {
     gap: 0.75rem clamp(1.1rem, 4vw, 2rem);
     margin-top: clamp(2.25rem, 6vh, 3.5rem);
     padding-top: clamp(1.25rem, 3vh, 1.75rem);
-    position: relative;
+    border-top: 1px solid var(--rule);
 }
 
 .links a {
@@ -197,95 +197,53 @@ a:focus-visible {
     border-bottom-color: var(--link-rule);
 }
 
-/* --- Entrance ---------------------------------------------------
-   Roles get different treatments: the name is revealed from behind
-   a mask, supporting text drifts up, the rule draws itself open.
-   Everything shares one ease so the sequence reads as a single move.
+/* --- Motion -----------------------------------------------------
+   The page arrives and leaves as one object. No per-element stagger:
+   a single fade on <main>, and a cross-page fade via view transitions
+   so navigating between pages dissolves instead of cutting.
    ---------------------------------------------------------------- */
 
 :root {
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Masks the name's own line box so the glyphs slide out from behind it.
-   Padding restores room for descenders that overflow would otherwise clip;
-   the matching negative margin keeps the layout position unchanged. */
-h1 {
-    overflow: hidden;
-    padding-bottom: 0.14em;
-    margin-bottom: -0.14em;
-}
-
-h1 > span {
-    display: block;
-    animation: reveal 1.15s var(--ease-out) 0.06s backwards;
-}
-
-@keyframes reveal {
+@keyframes fade-in {
     from {
         opacity: 0;
-        transform: translateY(105%);
     }
     to {
         opacity: 1;
-        transform: none;
     }
 }
 
-@keyframes drift {
-    from {
-        opacity: 0;
-        transform: translateY(0.45rem);
-    }
-    to {
-        opacity: 1;
-        transform: none;
-    }
+main {
+    animation: fade-in 0.9s var(--ease-out) 0.05s backwards;
 }
 
-/* Draws the rule open from the left instead of fading it in. */
-@keyframes draw {
-    from {
-        transform: scaleX(0);
-    }
-    to {
-        transform: scaleX(1);
-    }
+/* Cross-document view transitions: the outgoing page fades out while the
+   incoming one fades in. Progressive enhancement — browsers without support
+   simply navigate normally. */
+@view-transition {
+    navigation: auto;
 }
 
-.line {
-    animation: drift 0.85s var(--ease-out) backwards;
+::view-transition-old(root) {
+    animation: fade-in 0.28s var(--ease-out) reverse;
 }
 
-.line:nth-of-type(1) { animation-delay: 0.34s; }
-.line:nth-of-type(2) { animation-delay: 0.42s; }
-
-.links::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--rule);
-    transform-origin: left;
-    animation: draw 0.85s var(--ease-out) 0.46s backwards;
+::view-transition-new(root) {
+    animation: fade-in 0.42s var(--ease-out);
 }
 
-.links a {
-    animation: drift 0.7s var(--ease-out) backwards;
-}
-
-.links a:nth-child(1) { animation-delay: 0.62s; }
-.links a:nth-child(2) { animation-delay: 0.68s; }
-.links a:nth-child(3) { animation-delay: 0.74s; }
-.links a:nth-child(4) { animation-delay: 0.80s; }
-
+/* On a view transition the browser cross-fades the whole page, so the
+   entrance animation would double up. */
 @media (prefers-reduced-motion: reduce) {
-    h1 > span,
-    .line,
-    .links::before,
-    .links a {
+    main {
+        animation: none;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
         animation: none;
     }
 }
