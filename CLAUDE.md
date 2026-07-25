@@ -52,11 +52,30 @@ Two typefaces, both from Indian Type Foundry via Fontshare, with a strict divisi
 Weight carries the hierarchy in the two body lines: the role is 500, the location 400 and muted.
 
 ## Design Tokens
-Colors are CSS custom properties on `:root`, overridden in a single `prefers-color-scheme: dark` block. Change a color once in the token, never inline. `--serif` and `--sans` hold the two font stacks; `--gutter` and `--rise` control page margin and the block's optical rise above true center.
+Colors are CSS custom properties on `:root`, overridden in a single `prefers-color-scheme: dark` block. Change a color once in the token, never inline. `--serif` and `--sans` hold the two font stacks; `--gutter` and `--rise` control page margin and the block's optical rise above true center; `--ease-out` is the shared entrance easing.
+
+## Motion
+One entrance sequence, ~1.5s total, differentiated by the role each element plays:
+
+- **The name** is wrapped in a `<span>` and animates `translateY(105%)` inside an `overflow: hidden` heading, so the glyphs are revealed from behind their own line box rather than sliding around. The `h1` carries `padding-bottom: 0.14em` with a matching negative margin — without the padding, `overflow: hidden` clips descenders (the `g` in "Writing"); the negative margin cancels its effect on layout.
+- **Body lines** drift up a short distance.
+- **The rule** above the links is a `::before` pseudo-element that wipes open via `scaleX`, not a fading border. This is why `.links` has `position: relative` and no `border-top`.
+- **Nav links** cascade in at 60ms intervals.
+
+Rules to preserve:
+
+- **Animate only `transform` and `opacity`.** Both are GPU-compositable, so the sequence holds 60fps with zero dropped frames (verified: 61fps, worst frame 17.7ms). Animating width, height, or `top` would cause layout thrash.
+- **Everything shares `--ease-out`** so the staggered pieces read as one movement rather than separate effects.
+- **Timings are deliberately unequal.** Larger elements animate longer; the rule resolves just before the last link so the sequence lands instead of stopping abruptly.
+- **`prefers-reduced-motion` must disable every animation**, including the rule's. If the rule is left at `scaleX(0)` it becomes invisible rather than merely static — check it renders full width.
+
+Hover transitions are asymmetric on purpose: 0.15s in, 0.4s out. Fast response on enter, gentle release on leave.
 
 ## Verifying Changes
 Manual checks in a browser:
 - **Confirm both webfonts actually loaded.** macOS falls back to `Didot` for Boska, which looks deceptively similar but heavier, so a visual check is not sufficient — this silently shipped once already. Check the network panel for 200s on the woff2 files, or measure rendered text width against a nonexistent font name; if they match, the font is not loading.
 - Both color schemes, via DevTools rendering emulation.
 - 320px width — the name uses a non-breaking space and must not overflow, and all four nav links should stay on one row.
-- `prefers-reduced-motion`, which disables the entrance animation.
+- `prefers-reduced-motion`, which disables the entrance animation and must leave the rule fully drawn.
+- Descenders are not clipped by the heading's `overflow: hidden` — the `g` in "Writing" is the case to check.
+- To inspect the entrance, throttle it via DevTools Animations (or CDP `Animation.setPlaybackRate`) rather than trying to catch it live.
