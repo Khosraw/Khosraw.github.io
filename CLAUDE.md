@@ -93,10 +93,27 @@ A trace that sampled `main`'s computed opacity every frame across real navigatio
 
 Hover transitions are asymmetric on purpose: 0.15s in, 0.4s out.
 
+### Internal links must not redirect
+Link to `/writing/` **with the trailing slash**, never `/writing`. GitHub Pages (and any static server) answers `/writing` with a `301` to `/writing/`, and that redirect hop breaks the view transition — the browser begins the transition against the redirect response rather than the real document.
+
+This produced a directional flicker that was the key diagnostic clue: navigating home → `/writing` flickered, while `/writing/` → `/` was clean, because only the first path had a redirect. If a flicker ever returns on one direction only, check the link target for a redirect first:
+
+```bash
+curl -s -o /dev/null -w "%{http_code} redirects:%{num_redirects}\n" -L http://localhost:8000/writing
+```
+
+Use root-relative paths (`/css/...`, `/fonts/...`, `/favicon.png`) so both pages resolve assets identically regardless of nesting depth.
+
+### Browser behavior is expected to differ
+Cross-document view transitions ship in Chromium 126+ and Safari 18.2+; Firefox and older Chromium builds (including some mobile Edge versions) ignore the opt-in and navigate normally. A browser showing no transition at all is not a bug — it is the progressive-enhancement fallback. Do not "fix" a browser that simply cuts between pages.
+
+There is also **no fade on initial page load**, by design. See the note above on why the entrance animation was removed.
+
 ## Verifying Changes
 Manual checks in a browser:
 - **Confirm both webfonts actually loaded, and are actually rendering.** These differ: `document.fonts.status` can report `loaded` while the browser paints the fallback. Measure rendered text width against a nonexistent font name — if they match, the webfont is not in use. macOS falls back to `Didot` for Boska, which looks similar but heavier, so a visual check is not sufficient. This has silently shipped once already.
 - **Verify `link[rel=expect]` resolves.** If its `href` does not match a real element id, render blocking silently does nothing.
+- **Verify no internal link redirects.** `curl -L -w "%{num_redirects}"` on each internal target; anything above `0` will break the transition for that direction.
 - Both color schemes, via DevTools rendering emulation.
 - 320px width — the name must not overflow, and all four nav links should stay on one row.
 - `prefers-reduced-motion`, which must leave the page fully opaque and disable the `@view-transition` opt-in.
