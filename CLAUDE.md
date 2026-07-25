@@ -55,29 +55,51 @@ Weight carries the hierarchy in the two body lines: the role is 500, the locatio
 Colors are CSS custom properties on `:root`, overridden in a single `prefers-color-scheme: dark` block. Change a color once in the token, never inline. `--serif` and `--sans` hold the two font stacks; `--gutter` and `--rise` control page margin and the block's optical rise above true center; `--ease-out` is the shared entrance easing.
 
 ## Motion
-The page arrives and leaves as a single object. There is deliberately **no per-element stagger** — an earlier version animated the name, lines, rule, and each link separately, and it read as fussy rather than composed.
+Navigation is the only animation: a cross-page dissolve via cross-document view transitions. There is **no entrance fade on load** and no per-element stagger.
 
-Two pieces:
+Supported in Chromium 126+ and **Safari 18.2+** (shipped Dec 2024). Firefox is still in progress and simply navigates normally.
 
-- **On load**, one `fade-in` animation on `<main>`. Opacity only, ~950ms.
-- **Between pages**, cross-document view transitions (`@view-transition { navigation: auto }`) fade the outgoing page out while the incoming one fades in, so navigation dissolves instead of cutting. This needs no JavaScript, and browsers without support just navigate normally.
+### The navigation flicker — root cause and fix
+The real cause, per Chrome's and MDN's documentation: **the browser can start the transition before the destination document has finished parsing**, so it animates toward an unstyled, half-built page. Browsers use their own heuristics about when to first paint, so without an explicit hint the timing is inconsistent — which is why the severity differed between browsers rather than being absent in one.
 
-Rules to preserve:
+The documented fix is render blocking. Each page's `<head>` carries:
 
-- **Animate only `opacity` (and `transform` if ever needed).** Both are compositor-only, so nothing triggers layout or paint.
-- **Do not reintroduce per-element animation.** If an element seems to need its own entrance, the answer is almost certainly no — the whole point is that everything appears together.
-- **`prefers-reduced-motion` must disable both** the load fade and the view transitions.
+```html
+<link rel="expect" blocking="render" href="#content">
+```
 
-Hover transitions are asymmetric on purpose: 0.15s in, 0.4s out. Fast response on enter, gentle release on leave.
+`<main id="content">` is the target. This holds the first paint until `<main>` is parsed, so the transition always animates against a stable page. Parsing continues in the background; only painting is deferred. **This is the fix that matters. Do not remove it.**
 
-To inspect either animation, throttle it via DevTools Animations (or CDP `Animation.setPlaybackRate`) — at real speed both are too quick to see mid-flight.
+Required alongside it:
+
+- **Stylesheets must stay in `<head>`.** They are render-blocking by default there; move them and the guarantee is lost.
+- **`html` needs a background.** A transition composites both snapshots over the root element, so with a background only on `<body>`, gaps expose the browser's default white.
+- **Both pages need the `@view-transition` opt-in.** If either side lacks it, no transition occurs.
+- **No entrance fade on `<main>`.** An `opacity: 0 -> 1` animation makes every first paint blank, adding a blank frame on top of the transition.
+- **Reduced motion** is handled by gating the at-rule in `@media (prefers-reduced-motion: no-preference)` — the documented approach — rather than zeroing the animations afterward.
+
+Keep `::view-transition-old(root)` and `::view-transition-new(root)` on the same `--fade` duration; mismatched durations leave a window where the old page is gone and the new one is not yet opaque.
+
+Also worth knowing: if the destination takes more than **4 seconds** to become renderable, Chrome skips the transition with a `TimeoutError`. Render blocking pushes toward that budget, so keep blocking scoped to `#content` only.
+
+### Failed fixes — do not retry
+Several plausible-sounding fixes were tried and did not work, because the cause was misdiagnosed as an opacity/animation conflict:
+
+- **`html:active-view-transition main { animation: none }`** — suppressed the entrance fade during the transition. Treated a symptom; the guard also released mid-animation when durations differed.
+- **Unifying entrance-fade and transition durations** — made the guard consistent but fixed nothing.
+- **`font-display: optional`** — intended to stop a font swap flash. Actively harmful: it lets the browser abandon the webfont for a whole pageview. Verified failing on a throttled cold load, where the name rendered at the fallback's exact width while `document.fonts.status` was `loaded`. Stay on `block`.
+
+A trace that sampled `main`'s computed opacity every frame across real navigations showed opacity **flat at 1.0 the entire time**. That ruled out the whole opacity theory and should have prompted research much earlier.
+
+Hover transitions are asymmetric on purpose: 0.15s in, 0.4s out.
 
 ## Verifying Changes
 Manual checks in a browser:
-- **Confirm both webfonts actually loaded.** macOS falls back to `Didot` for Boska, which looks deceptively similar but heavier, so a visual check is not sufficient — this silently shipped once already. Check the network panel for 200s on the woff2 files, or measure rendered text width against a nonexistent font name; if they match, the font is not loading.
+- **Confirm both webfonts actually loaded, and are actually rendering.** These differ: `document.fonts.status` can report `loaded` while the browser paints the fallback. Measure rendered text width against a nonexistent font name — if they match, the webfont is not in use. macOS falls back to `Didot` for Boska, which looks similar but heavier, so a visual check is not sufficient. This has silently shipped once already.
+- **Verify `link[rel=expect]` resolves.** If its `href` does not match a real element id, render blocking silently does nothing.
 - Both color schemes, via DevTools rendering emulation.
-- 320px width — the name uses a non-breaking space and must not overflow, and all four nav links should stay on one row.
-- `prefers-reduced-motion`, which must leave the page fully opaque with no animation.
-- The cross-page fade, by slowing playback and navigating between `/` and `/writing`.
+- 320px width — the name must not overflow, and all four nav links should stay on one row.
+- `prefers-reduced-motion`, which must leave the page fully opaque and disable the `@view-transition` opt-in.
+- **Navigate between `/` and `/writing` repeatedly in both Chromium and Safari**, in dark mode, on a throttled cold load as well as a warm cache.
 
-Note on measuring frame rate: `requestAnimationFrame` is throttled to roughly 1fps when the browser view is unfocused, which looks like a catastrophic performance regression but is only an artifact. Confirm `document.hasFocus()` before trusting any rAF-based measurement.
+Note on measuring frame rate: `requestAnimationFrame` is throttled to roughly 1fps when the browser view is unfocused, which looks like a severe regression but is an artifact. Check `document.hasFocus()` first.

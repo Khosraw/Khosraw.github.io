@@ -3,6 +3,14 @@
    Display: Boska (Indian Type Foundry) — the name only
    Text:    Satoshi (Indian Type Foundry) — everything else
    Both self-hosted from Fontshare.
+
+   `font-display: block`, deliberately. `swap` paints fallback text and then
+   re-renders when the webfont lands, a visible flash of the wrong typeface.
+   `optional` avoids that but lets the browser abandon the webfont for an
+   entire pageview — verified failing on a throttled cold load, where the name
+   rendered at the fallback's width even though the font had loaded. `block`
+   holds text invisible briefly, then paints the real font; the files are
+   same-origin and preloaded, so the block period is imperceptible.
    --------------------------------------------------------------- */
 
 @font-face {
@@ -10,7 +18,7 @@
     src: url('../fonts/boska-light.woff2') format('woff2');
     font-weight: 300;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -18,7 +26,7 @@
     src: url('../fonts/satoshi-regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -26,7 +34,7 @@
     src: url('../fonts/satoshi-medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 *,
@@ -198,52 +206,47 @@ a:focus-visible {
 }
 
 /* --- Motion -----------------------------------------------------
-   The page arrives and leaves as one object. No per-element stagger:
-   a single fade on <main>, and a cross-page fade via view transitions
-   so navigating between pages dissolves instead of cutting.
+   Navigation is the only animation: a cross-page dissolve via view
+   transitions. There is deliberately no entrance fade on load.
    ---------------------------------------------------------------- */
 
 :root {
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --fade: 0.4s;
 }
 
-@keyframes fade-in {
-    from {
-        opacity: 0;
+/* A view transition composites both page snapshots over the root element, so
+   the root must be painted. With a background only on <body>, gaps in the
+   cross-fade expose the browser's default white. */
+html {
+    background: var(--paper);
+}
+
+/* Deliberately NO entrance animation on <main>. An `opacity: 0 -> 1` fade
+   means every document's first paint is blank, so each navigation shows a
+   blank frame, and under a view transition it stacks with the browser's own
+   cross-fade. Content paints immediately; navigation is what animates. */
+
+/* Cross-document view transitions. Supported in Chromium 126+ and Safari
+   18.2+; Firefox ignores this and navigates normally.
+
+   The flicker fix that actually matters is NOT here — it is the
+   `<link rel="expect" blocking="render">` in each page's <head>. Without it
+   the browser starts the transition before the destination document has
+   parsed, so it animates toward an unstyled, half-built page. See CLAUDE.md.
+
+   Gating the at-rule behind `prefers-reduced-motion: no-preference` is the
+   documented way to opt out, rather than blanking the animations later. */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
     }
-    to {
-        opacity: 1;
-    }
 }
 
-main {
-    animation: fade-in 0.9s var(--ease-out) 0.05s backwards;
-}
-
-/* Cross-document view transitions: the outgoing page fades out while the
-   incoming one fades in. Progressive enhancement — browsers without support
-   simply navigate normally. */
-@view-transition {
-    navigation: auto;
-}
-
-::view-transition-old(root) {
-    animation: fade-in 0.28s var(--ease-out) reverse;
-}
-
+/* Equal durations with no gap. If the outgoing snapshot finishes before the
+   incoming one is opaque, the page base shows through mid-transition. */
+::view-transition-old(root),
 ::view-transition-new(root) {
-    animation: fade-in 0.42s var(--ease-out);
-}
-
-/* On a view transition the browser cross-fades the whole page, so the
-   entrance animation would double up. */
-@media (prefers-reduced-motion: reduce) {
-    main {
-        animation: none;
-    }
-
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-        animation: none;
-    }
+    animation-duration: var(--fade);
+    animation-timing-function: var(--ease-out);
 }

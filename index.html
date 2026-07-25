@@ -19,12 +19,17 @@
     <link rel="canonical" href="https://khosraw.com">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.png">
 
-    <link rel="preload" href="fonts/boska-light.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="fonts/satoshi-medium.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="preload" href="/fonts/boska-light.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/satoshi-medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Holds the first paint until <main> has been parsed. Without this the
+         browser can begin a cross-document view transition against a
+         half-built document, which is the navigation flicker. -->
+    <link rel="expect" blocking="render" href="#content">
 </head>
 <body>
-    <main>
+    <main id="content">
         <h1>Khosraw&nbsp;Azizi</h1>
 
         <p class="line">Co-founder at <a href="https://pointer.ai" target="_blank" rel="noopener">Pointer</a></p>
