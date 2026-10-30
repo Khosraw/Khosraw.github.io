@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Untergrund</title>
+<link rel="icon" href="/favicon.png">
+<style>
+  :root { --fg: #fff; --bg: #000; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden;
+    font: 12px/1.5 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .04em; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; image-rendering: pixelated; }
+  #dbg { pointer-events: none; }
+  #hud { position: fixed; left: 16px; bottom: 14px; white-space: pre; pointer-events: none; text-transform: uppercase;
+    background: var(--bg); padding: 4px 8px; }
+  #hud:empty { display: none; }
+  #menu { position: fixed; inset: 0; overflow: auto; background: var(--bg); padding: 56px 16px 80px; box-sizing: border-box; }
+  #menu .wrap { max-width: 760px; margin: 0 auto; }
+  #menu h1 { font-size: 12px; font-weight: 400; margin: 0 0 24px; letter-spacing: .5em; }
+  #menu p { margin: 0 0 24px; }
+  #menu ol { list-style: none; padding: 0; margin: 0; }
+  #menu li { display: grid; grid-template-columns: 3ch 1fr auto; gap: 2ch; padding: 3px 6px; cursor: pointer; text-transform: uppercase; }
+  #menu li:hover, #menu li:focus { background: var(--fg); color: var(--bg); outline: none; }
+  #menu li.off { cursor: default; text-decoration: line-through; }
+  #menu li.off:hover { background: none; color: var(--fg); }
+  #menu .keys { margin-top: 32px; white-space: pre; }
+  .hidden { display: none !important; }
+  body.idle { cursor: none; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="dbg"></canvas>
+<div id="hud"></div>
+<div id="menu">
+  <div class="wrap">
+    <h1>UNTERGRUND</h1>
+    <ol id="list"></ol>
+    <div class="keys">SPACE  play / pause      ← →  seek 10 s       N P  next / previous
+S      strobe on / off    H    HUD on / off    D    feature view
+F      fullscreen         [ ]  sync -/+ 10 ms  ESC  track list
+R      Life only / mixed rules G    plain shapes / seals
+M      lock mode: auto → drop → build → groove → break → intro → outro
+0-6    same, directly (0 auto, 1 drop, 2 build, 3 groove, 4 break, 5 intro, 6 outro)
+Z      kick zoom bounce on / off</div>
+  </div>
+</div>
+<audio id="audio" preload="auto"></audio>
+<script src="app.js"></script>
+</body>
+</html>
