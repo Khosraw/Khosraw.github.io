@@ -12,7 +12,9 @@ The guiding constraint is restraint. Proposals to add sections, animations, anal
 - **writing/index.html** — the writing index. Currently a placeholder reading "No original thoughts to share."
 - **css/style.css** — all styling for both pages: `@font-face` declarations, design tokens, layout, entrance animation.
 - **fonts/** — self-hosted woff2 files: Boska light (300), Satoshi regular (400) and medium (500).
-- **CNAME**, **favicon.png**, **thumbnail.png** — domain, favicon, Open Graph image.
+- **CNAME** — the domain.
+- **favicon.svg**, **favicon.png**, **apple-touch-icon.png**, **thumbnail.png** — a KA monogram in Boska Light on the paper and ink tokens: the SVG follows the system theme, the PNGs are the fallback, the touch icon and the 1200×630 Open Graph image. The small icons thicken Boska's hairlines slightly so they survive at 16–32 px. Generated from `fonts/boska-light.woff2`, not drawn by hand.
+- **untergrund/** — an unlisted, noindexed music visualizer with its own JavaScript, built from `~/EA/untergrund` by `build_site.py`. It is deliberately outside the site's no-JS rule and is not linked from any page.
 
 There is no build step, no package manager, and no JavaScript.
 
