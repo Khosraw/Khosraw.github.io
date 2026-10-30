@@ -634,39 +634,57 @@ async function play(i) {
   for (const k in d.f) f[k] = unb64(d.f[k]);
   if (!f.pace) f.pace = new Uint8Array(d.frames).fill(128);   // analysis from before pace existed
   A = { ...d, f, flux: unb64(d.flux), new: unb64(d.new), period: 60 / d.bpm };
-  A.tiers = strobeTiers(A);
-  A.kickRun = kickRuns(A.beat_kick);
-  st.section = -1; st.beat = -1; st.vel = 2; st.push = 0; st.phase = 0;
   st.seed = hash32(i * 7919 + 13);
+  A.strobe = strobeModes(A);
+  A.kickRun = kickRuns(A.beat_kick);
+  A.hits = slotHits(A);
+  st.section = -1; st.beat = -1; st.vel = 2; st.push = 0; st.phase = 0;
   menu.classList.add('hidden');
   warmPool(Math.min(2, window.devicePixelRatio || 1));
   audio.src = `audio/${encodeURIComponent(t.audio)}`;
   try { await audio.play(); } catch (e) { /* needs a gesture; the click provides it */ }
-  measureLatency();
   history.replaceState(null, '', `#${t.slug}`);
 }
 
 // ---------------------------------------------------------------- clock
 let ctLast = 0, perfLast = 0;
-// audio.currentTime is what was handed to the output, not what you hear: Bluetooth headphones
-// add 150-250 ms. The AudioContext reports the device's output latency; subtract it.
-let latCtx = null;
-function measureLatency() {
-  try {
-    latCtx = latCtx || new AudioContext();
-    if (latCtx.state === 'suspended') latCtx.resume();
-    st.latency = Math.min(0.5, (latCtx.outputLatency || 0) + (latCtx.baseLatency || 0));
-  } catch (e) { st.latency = 0; }
-}
-setInterval(() => { if (latCtx) measureLatency(); }, 5000);
-
-function now() {
+// The media element's currentTime already accounts for the audio device's delay in Chrome and
+// Safari, so no device latency is subtracted by default (subtracting the AudioContext's
+// outputLatency on top made the visuals lag by ~170 ms). T (tap along) or [ ] correct the rest.
+// the playback clock with no corrections: where the browser says the audio is
+function rawNow() {
   const ct = audio.currentTime, p = performance.now();
   if (ct !== ctLast || audio.paused) { ctLast = ct; perfLast = p; }
+  return audio.paused ? ct : ctLast + (p - perfLast) / 1000;
+}
+
+// T: tap along with the kick. Each tap says how far behind the browser's clock you actually hear
+// the beat; after four taps the median replaces the device's reported latency.
+function tapSync() {
+  if (!A || audio.paused) return;
+  const raw = rawNow(), nowMs = performance.now();
+  if (nowMs - (st.lastTap || 0) > 3000) st.taps = [];
+  st.lastTap = nowMs;
+  const b = beatAt(raw);
+  if (b < 0) return;
+  let d = raw - A.beats[b];
+  if (d > A.period / 2) d -= A.period;
+  st.taps.push(d);
+  if (st.taps.length >= 4) {
+    const v = st.taps.slice(-8).sort((x, y) => x - y);
+    st.latency = Math.max(-0.2, Math.min(0.5, v[v.length >> 1]));
+    st.tapped = true;
+    st.offset = 0;
+  }
+  st.tapNote = nowMs;
+}
+
+function now() {
+  const raw = rawNow();
   // + display: a frame drawn now reaches the screen about a frame and a half later
   // - latency: what the audio device holds before you hear it
   const display = audio.paused ? 0 : 1.5 * (st.frameMs || 16.7) / 1000;
-  return (audio.paused ? ct : ctLast + (p - perfLast) / 1000) + st.offset - (st.latency || 0) + display;
+  return raw + st.offset - (st.latency || 0) + display;
 }
 
 function sectionAt(t) {
@@ -875,26 +893,34 @@ function frame(ts) {
   // --- strobe
   let invert = sc.invert;
   if (st.strobe) {
-    // the strobe tier is fixed for the track (see strobeTiers) and gated by kick runs (see
-    // kickRuns), so it holds steady through a run of kicks and stops only where the kick does;
-    // builds ramp their own strobe with tension.
-    //   0 bar downbeats   1 every kick   2 + off-beat 8ths   3 a 16th-note square wave
-    const tier = st.lock ? lockTier(sec.kind) : A.tiers[si];
+    // each section has a strobe mode (see strobeModes): the busiest parts of the track get a
+    // square wave, calmer kick parts get single flashes, the rest only the bar's first beat.
+    // All of it is gated by kick runs (see kickRuns); builds ramp their own strobe at the end.
+    const mode = st.lock ? lockMode(sec.kind) : A.strobe[si];
     const inRun = bi >= 0 && A.kickRun[bi];
     const build = sec.kind === 'build';
-    const div = bi < 0 || preDrop ? 0 : build ? (tension > 0.85 ? 4 : tension > 0.55 ? 2 : 0) : tier >= 3 && inRun ? 4 : 0;
+    const div = bi < 0 || preDrop || !build ? 0 : tension > 0.93 ? 4 : tension > 0.8 ? 2 : 0;
     if (div) {
-      // the square wave already lands on every beat; single flashes on top would knock it out
-      // of phase, so they are skipped while it runs
+      // end of a build: a square wave, inverted on the beat so the flash lands with it
       const k = Math.floor((t - A.beats[0]) / (A.period / div));
-      if (k % 2 === 1) invert = !invert;
+      if (k % 2 === 0) invert = !invert;
       st.invertFrames = 0;
     } else {
       if (st.invertFrames > 0) invert = !invert;
-      const k8 = bi < 0 ? -1 : Math.floor((t - A.beats[0]) / (A.period / 2));
-      if (k8 !== st.k8) {
-        if (!jumped && k8 % 2 === 1 && tier >= 2 && inRun) st.invertFrames = Math.max(st.invertFrames, 1);
-        st.k8 = k8;
+      // busy parts flash on the track's own rhythm: on every 16th (sq16) or 8th (sq8) slot
+      // where the music actually hits (hats, claps, stabs, rolls; see slotHits), always on the
+      // beat, held for half a slot. kick8 adds the off-beat 8th when something hits there.
+      const k16 = bi < 0 ? -1 : Math.floor((t - A.beats[0]) / (A.period / 4));
+      if (k16 !== st.k16) {
+        if (!jumped && inRun && k16 >= 0) {
+          const hit = (A.hits[k16] || 0) > A.hitThr;
+          const slotS = A.period / 4;
+          const hold = (sl) => Math.max(1, Math.round(sl * 0.5 * 1000 / (st.frameMs || 16.7)));
+          if (mode === 'sq16' && (k16 % 4 === 0 || hit)) st.invertFrames = Math.max(st.invertFrames, hold(slotS));
+          else if (mode === 'sq8' && k16 % 2 === 0 && (k16 % 4 === 0 || hit)) st.invertFrames = Math.max(st.invertFrames, hold(2 * slotS));
+          else if (mode === 'kick8' && k16 % 4 === 2 && hit) st.invertFrames = Math.max(st.invertFrames, 2);
+        }
+        st.k16 = k16;
       }
     }
   }
@@ -974,8 +1000,9 @@ function onBeat(bi, sec, tension) {
   // every beat of a kick run flashes (even one the detector heard weakly), and so does a strong
   // lone kick; at tier 0 (a locked calm mode) only the bar's first beat
   if (!st.strobe || !(A.kickRun[bi] || k > 0.6)) return;
-  const tier = st.lock ? lockTier(sec.kind) : A.tiers[st.section] ?? 1;
-  if (tier >= 1 || bib === 0) st.invertFrames = bib === 0 ? 3 : 2;
+  const mode = st.lock ? lockMode(sec.kind) : A.strobe[st.section] ?? 'downbeat';
+  if (mode === 'none' || mode === 'sq16' || mode === 'sq8') return;   // the slot strobe covers beats
+  if (mode !== 'downbeat' || bib === 0) st.invertFrames = bib === 0 ? 3 : 2;
 }
 
 // Per beat: is this beat inside a run of kicks? Beat-by-beat kick strength wobbles (a softer
@@ -1010,22 +1037,68 @@ function camera(t, bi, I) {
   return { zoom: 1 + 0.07 * k * (0.4 + I) * Math.exp(-phase * 7), rot: 0 };
 }
 
-// One strobe tier for the whole track, from how intense it is wherever the kick plays (pace and
-// loudness). Every kick then flashes the same way in every section, whatever the section is
-// called; where the kick stops, the flashing stops. Builds still ramp their own strobe.
-//   0 bar downbeats   1 every kick   2 + off-beat 8ths   3 a 16th-note square wave
-function strobeTiers(A) {
-  const vals = [];
-  for (let i = 0; i < A.frames; i += 6) {
-    if (A.f.kick[i] < 128) continue;
-    vals.push(0.5 + 0.42 * A.f.pace[i] / 255 + 0.08 * A.f.rms[i] / 255);
-  }
-  vals.sort((a, b) => a - b);
-  const I = vals.length ? vals[vals.length >> 1] : 0;
-  const tier = I >= 0.82 ? 3 : I >= 0.74 ? 2 : 1;
-  return A.sections.map(() => tier);
+// A strobe mode per section, so the strobe is saved for the busiest parts of a track:
+//   sq16     16th-note square wave        sq8   8th-note square wave
+//   kick8    a flash on each kick and off-beat 8th
+//   kick     a flash on each kick         downbeat   a flash on each bar's first beat
+// Kick sections are scored by how busy they are (pace, loudness, transients, new material) and
+// placed against the rest of the same track: the top band strobes, the middle flashes on kicks,
+// the bottom only marks the bar. Sections that repeat share a mode, and a top section picks its
+// style from a few, so the same track doesn't strobe the same way everywhere.
+function strobeModes(A) {
+  const S = A.sections, fps = A.fps, NBX = 24;
+  const score = S.map((s) => {
+    if (s.kind === 'build' || s.kind === 'break') return null;
+    let n = 0, sum = 0;
+    for (let i = Math.floor(s.start * fps); i < Math.min(A.frames, Math.floor(s.end * fps)); i += 3) {
+      if (A.f.kick[i] < 128) continue;
+      let fl = 0, nw = 0;
+      for (let b = 0; b < NBX; b++) { fl += A.flux[i * NBX + b]; nw += A.new[i * NBX + b]; }
+      sum += 0.45 * A.f.pace[i] / 255 + 0.2 * A.f.rms[i] / 255 + 0.2 * Math.min(1, 3 * fl / NBX / 255) + 0.15 * Math.min(1, 6 * nw / NBX / 255);
+      n++;
+    }
+    return n > 20 ? sum / n : null;
+  });
+  const vals = score.filter((v) => v != null);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  // repeats share the median score of their group
+  const group = {};
+  S.forEach((s, i) => { if (score[i] != null) (group[s.label] = group[s.label] || []).push(score[i]); });
+  return S.map((s, i) => {
+    if (score[i] == null) return s.kind === 'intro' || s.kind === 'outro' ? 'downbeat' : 'none';
+    const g = group[s.label].slice().sort((a, b) => a - b);
+    const v = g[g.length >> 1];
+    // a flat track (everything about as busy) gets kick flashes throughout, no strobe
+    const r = hi - lo < 0.04 ? 0.5 : (v - lo) / (hi - lo);
+    const h = hash32((st.seed || 1) ^ (s.label * 2654435761));
+    if (r >= 0.9) return 'sq16';
+    if (r >= 0.7) return ['sq16', 'sq8', 'kick8'][h % 3];
+    if (r >= 0.35) return ['kick', 'kick8'][h % 2];
+    return 'downbeat';
+  });
 }
-function lockTier(kind) { return { drop: 3, groove: 1, intro: 0, outro: 0 }[kind] ?? 0; }
+// How hard the music hits at the start of each 16th-note slot (onset strength and mid/high
+// transients, from the analysis), so the strobe can follow the track's actual rhythm instead of a
+// metronome. hitThr keeps roughly the strongest 40% of slots.
+function slotHits(A) {
+  const slot = A.period / 4, t0 = A.beats[0] || 0, NBX = 24;
+  const n = Math.max(0, Math.floor((A.duration - t0) / slot));
+  const hits = new Float32Array(n);
+  for (let j = 0; j < n; j++) {
+    const c = Math.round((t0 + j * slot) * A.fps);
+    let m = 0;
+    for (let i = Math.max(0, c - 1); i <= Math.min(A.frames - 1, c + 2); i++) {
+      let fl = 0;
+      for (let b = 8; b < NBX; b++) fl += A.flux[i * NBX + b];
+      m = Math.max(m, A.f.onset[i] / 255, 2 * fl / (NBX - 8) / 255);
+    }
+    hits[j] = m;
+  }
+  const sorted = Array.from(hits).sort((a, b) => a - b);
+  A.hitThr = sorted[Math.floor(sorted.length * 0.6)] || 0.5;
+  return hits;
+}
+function lockMode(kind) { return { drop: 'sq16', groove: 'kick', intro: 'downbeat', outro: 'downbeat' }[kind] ?? 'downbeat'; }
 
 
 function sealBeat(bi, bib, bar, k, sec, tension) {
@@ -1056,7 +1129,8 @@ function drawOverlay(t, fi, sec, tension, dpr) {
     const m = Math.floor(t / 60), s = Math.floor(t % 60).toString().padStart(2, '0');
     // only what a viewer needs: which track, where in it, and any setting they changed
     const flags = [st.lock ? `LOCKED ${st.lock}` : '', st.strobe ? '' : 'STROBE OFF',
-      st.offset ? `SYNC ${st.offset > 0 ? '+' : ''}${Math.round(st.offset * 1000)} MS` : ''].filter(Boolean).join('  ');
+      st.offset ? `SYNC ${st.offset > 0 ? '+' : ''}${Math.round(st.offset * 1000)} MS` : '',
+      nowMs - (st.tapNote || -1e9) < 3000 ? (st.taps.length < 4 ? `TAP ${st.taps.length}/4` : `SYNCED ${Math.round(st.latency * 1000)} MS`) : ''].filter(Boolean).join('  ');
     const text = `${String(cur + 1).padStart(2, '0')}/${playlist.length}  ${tr.artists.split(',')[0]} — ${tr.title}\n` +
       `${m}:${s}${flags ? '  ' + flags : ''}`;
     if (text !== hud.textContent) hud.textContent = text;
@@ -1144,6 +1218,7 @@ addEventListener('keydown', (e) => {
   else if (k === 'z' || k === 'Z') st.zoomOn = !st.zoomOn;
   else if (k === 'm' || k === 'M') setLock(LOCKS[(LOCKS.indexOf(st.lock) + 1) % LOCKS.length]);
   else if (k >= '0' && k <= '6') setLock(LOCKS[+k]);
+  else if (k === 't' || k === 'T') tapSync();
   else if (k === '[') st.offset -= 0.01;
   else if (k === ']') st.offset += 0.01;
 });
