@@ -4,11 +4,13 @@
 // analysis/<slug>.json (from analyze.py) gives, at 60 frames per second:
 //   new[24]   energy that was absent 1, 2 and 4 bars ago  -> coherent cell injection
 //   flux[24]  whitened per-band transients                 -> sparse sparks, slice glitches
+//   vhit[8]   the track's instruments (NMF voices): when each hits, scaled by how much it
+//             stands out (vsal, 15 fps)                  -> one lane per instrument
 //   laser, laser_y                                       -> two bars that ride a pitch sweep
 //   pace, tension, beats, beat_kick, sections (kind + repeat label), rms, delta, ...
 // The automaton has momentum: its speed (steps per beat) chases the track's pace with
 // inertia, and every kick shoves it forward. One intensity level carries across sections and
-// sets grain and density; the strobe is set per track and gated by the kick. Stamps land on
+// sets grain and density; the strobe is set per section and gated by the kick. Stamps land on
 // beats, scene changes on section boundaries. Output is strictly 1-bit.
 
 const $ = (s) => document.querySelector(s);
@@ -181,9 +183,10 @@ bool sigil(vec2 p, float unit, int m, int N, int K, float sR, float sW, float ro
 const STEP_FS = COMMON + `
 uniform sampler2D uState;
 uniform ivec2 uSize;
-uniform int uBirth, uSurvive, uDoStep, uMap, uSym, uDither, uBlock, uSigMask, uSigN, uSigK, uShape;
-uniform float uNew[24], uFlux[24];
+uniform int uBirth, uSurvive, uDoStep, uMap, uSym, uDither, uBlock, uSigMask, uSigN, uSigK, uShape, uNV;
+uniform float uNew[24], uFlux[24], uVHit[8];
 uniform float uSeed, uNewGain, uFluxGain, uKill, uSigR, uSigW, uSigRot, uSigSeed, uFill, uLineW, uThin, uTrailDecay;
+uniform float uVoiceGain;
 out vec4 o;
 
 void main() {
@@ -219,6 +222,14 @@ void main() {
   // band's centre (a ring, a column, a row), so a hi-hat is a line, not noise
   bool line = abs(fract(bf) - 0.5) < uLineW && b < 1.0;
   bool inj = (b < 1.0 && rnd(blk, uSeed) < pn && th < 0.55) || (line && th < pf);
+  if (uNV > 0 && b < 1.0) {
+    // each instrument owns a lane (low ones inside, high ones outside; rings of equal area) and
+    // every hit throws a burst of blocks into it, so a loop or a held note stays on screen after
+    // its first bar and the lane goes quiet when the instrument stops
+    int vi = clamp(int((uMap == 0 ? b * b : b) * float(uNV)), 0, uNV - 1);
+    ivec2 vb = ivec2(floor(vec2(fc) / float(uBlock * 2)));
+    if (rnd(vb, uSeed + 11.0) < pow(uVHit[vi], 1.5) * uVoiceGain && th < 0.6) inj = true;
+  }
   if (uFill > 0.0 && th < uFill) inj = true;
   if (inj && !alive) { alive = true; age = 0.0; }
   if (uShape > 0) {
@@ -495,7 +506,7 @@ function population() {
   return popLast;
 }
 
-const ZERO24 = new Float32Array(NB), ZERO48 = new Float32Array(48), ZERO32 = new Float32Array(32);
+const ZERO24 = new Float32Array(NB), ZERO48 = new Float32Array(48), ZERO32 = new Float32Array(32), ZERO8 = new Float32Array(8);
 function step(o, grid = G) {
   gl.useProgram(P_STEP.p);
   const u = P_STEP.u;
@@ -514,6 +525,9 @@ function step(o, grid = G) {
   gl.uniform1i(u.uBlock, o.block);
   gl.uniform1fv(u.uNew, o.newv || ZERO24);
   gl.uniform1fv(u.uFlux, o.flux || ZERO24);
+  gl.uniform1i(u.uNV, o.nv || 0);
+  gl.uniform1fv(u.uVHit, o.vhit || ZERO8);
+  gl.uniform1f(u.uVoiceGain, o.voiceGain || 0);
   gl.uniform1f(u.uSeed, o.seed);
   gl.uniform1f(u.uNewGain, o.newGain);
   gl.uniform1f(u.uFluxGain, o.fluxGain);
@@ -600,7 +614,7 @@ const st = {
   section: -1, scene: null, beat: -1, lastT: 0,
   invertFrames: 0, flashFrames: 0, explode: 0, seed: 1,
   cellCss: 4, newGain: 0.5, fluxGain: 0.02,
-  newv: new Float32Array(NB), flux: new Float32Array(NB), pop: 0, thin: 0,
+  newv: new Float32Array(NB), flux: new Float32Array(NB), vhit: new Float32Array(8), vsal: new Float32Array(8), pop: 0, thin: 0,
   lifeOnly: true, seals: false, zoomOn: true, vel: 2, push: 0, phase: 0, rate: 2, laser: 0, laserY: 0.5,
 };
 
@@ -634,6 +648,9 @@ async function play(i) {
   for (const k in d.f) f[k] = unb64(d.f[k]);
   if (!f.pace) f.pace = new Uint8Array(d.frames).fill(128);   // analysis from before pace existed
   A = { ...d, f, flux: unb64(d.flux), new: unb64(d.new), period: 60 / d.bpm };
+  // analyses from before the voices existed have none: the lanes stay off
+  A.nv = d.vhit && d.vsal && d.voices ? Math.min(8, d.voices.length) : 0;
+  if (A.nv) { A.vhit = unb64(d.vhit); A.vsal = unb64(d.vsal); }
   st.seed = hash32(i * 7919 + 13);
   A.strobe = strobeModes(A);
   A.kickRun = kickRuns(A.beat_kick);
@@ -739,6 +756,10 @@ function frame(ts) {
     st.newv[b] = A.new[fi * NB + b] / 255;
     st.flux[b] = A.flux[fi * NB + b] / 255;
   }
+  for (let v = 0; v < A.nv; v++) {
+    st.vhit[v] = A.vhit[fi * A.nv + v] / 255;
+    st.vsal[v] = A.vsal[(fi >> 2) * A.nv + v] / 255;
+  }
   const rms = F('rms'), delta = F('delta'), onset = F('onset');
   // a locked build has no real ramp to follow, so it holds at a high tension
   const tension = st.lock === 'build' ? Math.max(F('tension'), 0.75) : F('tension');
@@ -837,6 +858,8 @@ function frame(ts) {
   const perStep = Math.min(2, Math.max(0.2, 4 / Math.max(0.5, st.rate)));
   const newGain = (0.9 - 0.4 * calm) * (0.5 + rms) * (0.6 + 0.8 * I) * perStep;
   const fluxGain = (0.6 - 0.35 * calm) * (0.6 + 0.8 * I) * perStep;
+  // instruments: as strong in a break as in a drop (that is where the leads and pads play)
+  const voiceGain = 0.35 * (0.7 + 0.6 * I) * perStep;
   const trailSteps = Math.min(6, Math.max(2, st.rate * 0.4));
   // density follows the music: thin out old cells when the screen is fuller than the moment calls for
   if (steps) st.pop = population();
@@ -847,6 +870,7 @@ function frame(ts) {
       thin: st.thin,
       birth, survive, doStep: true, map: sc.map, sym: sc.sym, dither: sc.dither,
       block: Math.max(1, Math.round(6 / sc.cell)), newv: st.newv, flux: st.flux,
+      nv: A.nv, vhit: st.vhit, voiceGain,
       seed: (st.seed + (tick - k) * 31) % 1e6, newGain, fluxGain, trailDecay: 1 / trailSteps,
       fill: st.pendingFill || 0, stamp: st.pendingStamp,
     };
@@ -1139,12 +1163,19 @@ function drawOverlay(t, fi, sec, tension, dpr) {
   // feature view: new (top) and flux (below) as 1-bit bars, section map along the bottom
   const W = dbg.width, H = dbg.height, bw = Math.floor(W * 0.35 / NB), x0 = W - NB * bw - 16 * dpr, y0 = 16 * dpr;
   dctx.fillStyle = '#000';
-  dctx.fillRect(x0 - 4 * dpr, y0 - 4 * dpr, NB * bw + 8 * dpr, 140 * dpr);
+  dctx.fillRect(x0 - 4 * dpr, y0 - 4 * dpr, NB * bw + 8 * dpr, 184 * dpr);
   dctx.fillStyle = '#fff';
   for (let b = 0; b < NB; b++) {
     const hN = st.newv[b] * 60 * dpr, hF = st.flux[b] * 60 * dpr;
     dctx.fillRect(x0 + b * bw, y0 + 60 * dpr - hN, bw - 1, hN);
     dctx.fillRect(x0 + b * bw, y0 + 70 * dpr, bw - 1, hF);
+  }
+  // voices: salience as a bar, a hit as a block above it
+  const vw = Math.floor(NB * bw / 8);
+  for (let v = 0; v < A.nv; v++) {
+    const hL = st.vsal[v] * 40 * dpr;
+    dctx.fillRect(x0 + v * vw, y0 + 175 * dpr - hL, vw - 2 * dpr, hL);
+    if (st.vhit[v] > 0.3) dctx.fillRect(x0 + v * vw, y0 + 128 * dpr, vw - 2 * dpr, 4 * dpr);
   }
   const yb = H - 10 * dpr;
   dctx.fillStyle = '#000';
